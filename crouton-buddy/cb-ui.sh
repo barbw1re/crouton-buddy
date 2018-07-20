@@ -19,29 +19,32 @@ CB_COL_BG_BLUE="44"
 #
 cbMessage() {
     printf '%*s\n'  "${COLUMNS:-$(tput cols)}" '' | tr ' ' ' '
-    printf '%-*s\n' "${COLUMNS:-$(tput cols)}" "  $*" | tr ' ' ' '
+    while [[ ! -z "$1" ]]; do
+        printf '%-*s\n' "${COLUMNS:-$(tput cols)}" "  $1" | tr ' ' ' '
+        shift
+    done
     printf '%*s'    "${COLUMNS:-$(tput cols)}" '' | tr ' ' ' '
     printf "\033[${COL_RESET}m\n\n"
 }
 
 cbStatus() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_GREEN}m"
-    cbMessage "$*"
+    cbMessage "$@"
 }
 
 cbInfo() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_BLUE}m"
-    cbMessage "$*"
+    cbMessage "$@"
 }
 
 cbWarning() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_YELLOW}m"
-    cbMessage "$*"
+    cbMessage "$@"
 }
 
 cbError() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_RED}m"
-    cbMessage "$*"
+    cbMessage "$@"
 }
 
 #
@@ -50,9 +53,28 @@ cbError() {
 cbAcknowledge() {
     if [[ ! -z "$1" ]]; then
         echo ""
-        cbInfo "$*"
+        cbInfo "$@"
     fi
-    read -p "Press enter to continue ... "
+    read -p " Press enter to continue ... "
+}
+
+#
+# Get acknowledgement of abort from user
+#
+cbAcknowledgeAbort() {
+    if [[ ! -z "$1" ]]; then
+        echo ""
+        cbWarning "$@"
+    fi
+    read -p " Press enter to continue ... "
+}
+
+#
+# Get a response from user
+#
+cbAsk() {
+    read -p " $*" resp
+    echo "$resp"
 }
 
 #
