@@ -5,8 +5,35 @@ cd $(dirname "$0")
 cbDir=`pwd`
 cd "$cbDir"
 
-# Load bash-menu
+# Globals
+HOME_DIR="/home/chronos/user"   # @placeholder: Should be set by caller
+LINUX_RELEASE="xenial"
+CROUTON_APP="$bin/crouton"
+CROUTON_ROOT="$HOME_DIR/Downloads"
+CROUTON_BOOTSTRAP="$CROUTON_ROOT/$LINUX_RELEASE.tar.bz2"
+CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,keyboard,xorg,xiwi"
+CHROOT_ROOT="/mnt/stateful_partition/crouton/chroots"
+
+# Load dependencies
+. "$cbDir/cb-ui.sh"
+. "$cbDir/cb-crouton.sh"
 . "$cbDir/menu/bash-menu.sh"
+
+
+#
+# Helpers
+#
+
+#
+# Ensure setup and display action banner
+cbInitAction() {
+    cbStatus "$*"
+    if [ "$(cbEnsureCrouton)" -eq 0 ]; then
+        cbError "ERROR: Unable to access (or download) crouton installer"
+        return 0
+    fi
+    return 1
+}
 
 
 #
@@ -23,14 +50,17 @@ cbCreate() {
     #   $CROUTON_APP        => $bin/crouton
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Create a new environment"
     #   Do:
     #       **MAYBE** List environments
     #       Enter environment (into $CHROOT_NAME)
     #           or notify abort action + get acknowledgement
     #   While exists environmewnt $CHROOT_NAME
-    #   Confirm create $CHROOT_NAME
-    #       or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to create new environment $CHROOT_NAME")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment creation."
+        return 1
+    fi
     #   Ensure bootstrap
     #       Ensure file $CROUTON_BOOTSTRAP
     #           or:
@@ -40,14 +70,13 @@ cbCreate() {
     #           or notify abort action + get acknowledgement
     #   Notify creating installation of $LINUX_RELEASE as $CHROOT_NAME
     #   Notify using $CROUTON_TARGETS
-    #   Confirm perform install
-    #       or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to create the new environment $CHROOT_NAME")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment creation."
+        return 1
+    fi
     #   sudo sh $CROUTON_APP -n $CHROOT_NAME -f $CROUTON_BOOTSTRAP -t $CROUTON_TARGETS
-    #   **MAYBE**: Notify success + get acknowledgement
-
-    # @placeholder:
-    echo "Create new environment"
-    read ans
+    cbAcknowledge "New environment created."
 
     return 1
 }
@@ -58,17 +87,16 @@ cbUpdate() {
     #   $CROUTON_APP        => $bin/crouton
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Update an existing environment"
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
-    #   Confirm update $CHROOT_NAME
-    #       or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to update environment $CHROOT_NAME")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment update."
+        return 1
+    fi
     #   sudo sh $CROUTON_APP -n $CHROOT_NAME -u
-    #   **MAYBE**: Notify success + get acknowledgement
-
-    # @placeholder:
-    echo "Update environment"
-    read ans
+    cbAcknowledge "Environment updated."
 
     return 1
 }
@@ -79,7 +107,7 @@ cbEnter() {
     #   $CHROOT_ROOT        => /mnt/stateful_partition/crouton/chroots
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Enter and configure/manage environment"
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
     #   CHROOT_DIR="$CHROOT_ROOT/$CHROOT_NAME"
@@ -98,19 +126,18 @@ cbBackup() {
     #   Nothing
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Backup environmewnt"
     #   Require at least 1 environment
     #       or notify abort action + get acknowledgement
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
-    #   Confirm backup of $CHROOT_NAME
-    #       or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to backup environment $CHROOT_NAME")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment backup."
+        return 1
+    fi
     #   sudo edit-chroot -b $CHROOT_NAME
-    #   **MAYBE**: Notify success + get acknowledgement
-
-    # @placeholder:
-    echo "Backing up environment"
-    read ans
+    cbAcknowledge "Environment backup completed."
 
     return 1
 }
@@ -120,7 +147,7 @@ cbRestore() {
     #   $CROUTON_ROOT       => $HOME_DIR/Downloads
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Restore environment"
     #   Pick backup file from $CROUTON_ROOT
     #       *** Can we restore specific version? ***
     #       or notify abort action + get acknowledgement
@@ -128,12 +155,18 @@ cbRestore() {
     #       *** Determine name from file and pre-fill picker ***
     #       or notify abort action + get acknowledgement
     #   If exists $CHROOT_NAME:
-    #       Confirm overwrite environment $CHROOT_NAME
-    #           or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to overwrite environment $CHROOT_NAME with restore of XXXX")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment restore."
+        return 1
+    fi
     #       sudo edit-chroot -rr $CHROOT_NAME
     #   Else:
-    #       Confirm create environment $CHROOT_NAME
-    #           or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of XXXX")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment restore."
+        return 1
+    fi
     #       sudo edit-chroot -r $CHROOT_NAME
     #   **MAYBE**: Notify success + get acknowledgement
 
@@ -141,7 +174,7 @@ cbRestore() {
     echo "Creating new environment via restore"
     echo " - or -"
     echo "Replacing environment with restore"
-    read ans
+    cbAcknowledge
 
     return 1
 }
@@ -151,17 +184,16 @@ cbDelete() {
     #   Nothing
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Delete environment"
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
-    #   Confirm delete of $CHROOT_NAME
-    #       or notify abort action + get acknowledgement
+    CHROOT_NAME="PLACEHOLDER"
+    if [ "$(cbConfirm "Are you sure you want to delete environment $CHROOT_NAME")" -eq 0 ]; then
+        cbAcknowledge "Aborting environment deletion."
+        return 1
+    fi
     #   sudo delete-chroot $CHROOT_NAME
-    #   **MAYBE**: Notify success + get acknowledgement
-
-    # @placeholder:
-    echo "Deleting environment"
-    read ans
+    cbAcknowledge "Environment deleted."
 
     return 1
 }
@@ -174,19 +206,17 @@ cbPurge() {
     #   $CROUTON_BOOTSTRAP  => $CROUTON_ROOT/$LINUX_RELEASE.tar.bz2
     #
     # @steps:
-    #   Show action title
+    cbInitAction "Purge cached bootstrap"
     #   Ensure file $CROUTON_BOOTSTRAP
     #       or notify abort action + get acknowledgement
-    #   Confirm delete $LINUX_RELEASE bootstrap
-    #       or notify abort action + get acknowledgement
+    if [ "$(cbConfirm "Are you sure you want to purge the cached $LINUX_RELEASE bootstrap")" -eq 0 ]; then
+        cbAcknowledge "Aborting bootstrap purge."
+        return 1
+    fi
     #   rm "$CROUTON_BOOTSTRAP"
     #   Ensure not file $CROUTON_BOOTSTRAP
     #       or notify abort action + get acknowledgement
-    #   Notify success + get acknowledgement
-
-    # @placeholder:
-    echo "Deleting bootstrap cache"
-    read ans
+    cbAcknowledge "Bootstrap cache purged."
 
     return 1
 }
