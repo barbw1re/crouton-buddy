@@ -24,15 +24,23 @@ CHROOT_ROOT="/mnt/stateful_partition/crouton/chroots"
 # Helpers
 #
 
-#
+# Abort with message
+cbAbort() {
+    cbError "$*"
+    exit 1
+}
+
 # Ensure setup and display action banner
 cbInitAction() {
     cbStatus "$*"
-    if [ "$(cbEnsureCrouton)" -eq 0 ]; then
+
+    if [ "$(cbEnsureCrouton "$CROUTON_APP")" -eq 0 ]; then
         cbError "ERROR: Unable to access (or download) crouton installer"
-        return 0
+        cbAcknowledge
+        return 1
     fi
-    return 1
+
+    return 0
 }
 
 
@@ -50,7 +58,7 @@ cbCreate() {
     #   $CROUTON_APP        => $bin/crouton
     #
     # @steps:
-    cbInitAction "Create a new environment"
+    cbInitAction "Create a new environment" || return 1
     #   Do:
     #       **MAYBE** List environments
     #       Enter environment (into $CHROOT_NAME)
@@ -61,6 +69,7 @@ cbCreate() {
         cbAcknowledge "Aborting environment creation."
         return 1
     fi
+
     #   Ensure bootstrap
     #       Ensure file $CROUTON_BOOTSTRAP
     #           or:
@@ -87,7 +96,7 @@ cbUpdate() {
     #   $CROUTON_APP        => $bin/crouton
     #
     # @steps:
-    cbInitAction "Update an existing environment"
+    cbInitAction "Update an existing environment" || return 1
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
     CHROOT_NAME="PLACEHOLDER"
@@ -107,7 +116,7 @@ cbEnter() {
     #   $CHROOT_ROOT        => /mnt/stateful_partition/crouton/chroots
     #
     # @steps:
-    cbInitAction "Enter and configure/manage environment"
+    cbInitAction "Enter and configure/manage environment" || return 1
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
     #   CHROOT_DIR="$CHROOT_ROOT/$CHROOT_NAME"
@@ -126,7 +135,7 @@ cbBackup() {
     #   Nothing
     #
     # @steps:
-    cbInitAction "Backup environmewnt"
+    cbInitAction "Backup environmewnt" || return 1
     #   Require at least 1 environment
     #       or notify abort action + get acknowledgement
     #   Pick existing environment (into $CHROOT_NAME)
@@ -147,7 +156,7 @@ cbRestore() {
     #   $CROUTON_ROOT       => $HOME_DIR/Downloads
     #
     # @steps:
-    cbInitAction "Restore environment"
+    cbInitAction "Restore environment" || return 1
     #   Pick backup file from $CROUTON_ROOT
     #       *** Can we restore specific version? ***
     #       or notify abort action + get acknowledgement
@@ -184,7 +193,7 @@ cbDelete() {
     #   Nothing
     #
     # @steps:
-    cbInitAction "Delete environment"
+    cbInitAction "Delete environment" || return 1
     #   Pick existing environment (into $CHROOT_NAME)
     #       or notify abort action + get acknowledgement
     CHROOT_NAME="PLACEHOLDER"
@@ -199,23 +208,33 @@ cbDelete() {
 }
 
 cbPurge() {
-    # @needs:
-    #   $LINUX_RELEASE      => xenial
-    #   $HOME_DIR           => /home/chronos/user -or- /home/`ls /home/ | awk '{print $1}'`
-    #   $CROUTON_ROOT       => $HOME_DIR/Downloads
-    #   $CROUTON_BOOTSTRAP  => $CROUTON_ROOT/$LINUX_RELEASE.tar.bz2
-    #
-    # @steps:
-    cbInitAction "Purge cached bootstrap"
-    #   Ensure file $CROUTON_BOOTSTRAP
-    #       or notify abort action + get acknowledgement
-    if [ "$(cbConfirm "Are you sure you want to purge the cached $LINUX_RELEASE bootstrap")" -eq 0 ]; then
+    # Ensure needed globals:
+    [[ "$CROUTON_BOOTSTRAP" != "" ]] || cbAbort "CROUTON_BOOTSTRAP not configured"
+    [[ "$CROUTON_ROOT"      != "" ]] || cbAbort "CROUTON_ROOT not configured"
+    [[ "$HOME_DIR"          != "" ]] || cbAbort "HOME_DIR not configured"
+    [[ "$LINUX_RELEASE"     != "" ]] || cbAbort "LINUX_RELEASE not configured"
+
+    cbInitAction "Purge cached bootstrap" || return 1
+
+    if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then
+        cbAcknowledge "No cached bootstrap for $LINUX_RELEASE found (expected $CROUTON_BOOTSTRAP)"
+        return 1
+    fi
+
+    if [[ "$(cbConfirm "Are you sure you want to purge the cached $LINUX_RELEASE bootstrap")" -eq 0 ]]; then
         cbAcknowledge "Aborting bootstrap purge."
         return 1
     fi
-    #   rm "$CROUTON_BOOTSTRAP"
-    #   Ensure not file $CROUTON_BOOTSTRAP
-    #       or notify abort action + get acknowledgement
+
+    rm "$CROUTON_BOOTSTRAP"
+    local ret=$?
+
+    if [[ $ret -ne 0 || -s "$CROUTON_BOOTSTRAP" ]]; then
+        cbError "ERROR: Unable to purge $LINUX_RELEASE bootstrap"
+        cbAcknowledge
+        return 1
+    fi
+
     cbAcknowledge "Bootstrap cache purged."
 
     return 1
