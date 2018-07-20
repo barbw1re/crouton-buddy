@@ -35,7 +35,8 @@ if [[ `id -u` -gt 0 ]]; then
               "  $ sudo sh $0"
 fi
 
-# Get script run directory
+# Get script file and run directory
+me=$(dirname "$0")
 dir=`pwd`
 cd $(dirname "$0")
 bin=`pwd`
