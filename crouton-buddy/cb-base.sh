@@ -296,7 +296,7 @@ cbPurge() {
         return 1
     fi
 
-    rm "$CROUTON_BOOTSTRAP"
+    sudo rm "$CROUTON_BOOTSTRAP"
     local ret=$?
 
     if [[ $ret -ne 0 || -s "$CROUTON_BOOTSTRAP" ]]; then
