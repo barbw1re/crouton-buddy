@@ -1,12 +1,15 @@
 #!/bin/bash
 
-cbDir=`pwd`
-cd $(dirname "$0")
-cbRoot=`pwd`
-cd "$cbDir"
+# Set by caller:
+#
+# CB_ROOT
+# HOME_DIR
+# ROOT_DIR
 
-# Load bash-menu
-. "$cbRoot/menu/bash-menu.sh"
+# Load dependencies
+. "$CB_ROOT/cb-ui.sh"
+. "$CB_ROOT/cb-crouton.sh"
+. "$CB_ROOT/menu/bash-menu.sh"
 
 
 #
