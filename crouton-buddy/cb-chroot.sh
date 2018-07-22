@@ -2,9 +2,10 @@
 
 # Set by caller:
 #
-# CB_ROOT
-# HOME_DIR
-# ROOT_DIR
+# me       => full path to caller (crouton-buddy.sh script)
+# CB_ROOT  => full path to Crouton Buddy application directory
+# HOME_DIR => full path to home directory
+# ROOT_DIR => full path to Downloads directory
 
 # Load dependencies
 . "$CB_ROOT/cb-ui.sh"

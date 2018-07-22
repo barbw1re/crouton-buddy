@@ -1,13 +1,7 @@
 #!/bin/bash
 
-lineBreak() {
-    echo ""
-    echo "**********"
-    echo ""
-}
-
 errorExit() {
-    lineBreak
+    echo -e "\n****************\n"
     echo "ERROR: $1"
     if [ ! -z "$2" ]; then
         shift
@@ -16,27 +10,26 @@ errorExit() {
             echo "$msg"
         done
     fi
-    lineBreak
+    echo -e "\n****************\n"
 
     exit 1    
 }
 
 # Ensure we are running under bash (will not work under sh or dash etc)
 if [ "$BASH_SOURCE" = "" ]; then
-    [ -x /bin/bash ] || errorExit "$0 needs to be run by bash and /bin/bash does not appear to be available"
+    [ -x /bin/bash ] || errorExit "$0 needs to be run by bash and /bin/bash does not appear to be available."
     /bin/bash "$0"
     exit 0 
 fi
 
 # Ensure we are running as root
 if [[ `id -u` -gt 0 ]]; then
-    errorExit "Unable to run as regular user" \
-              "Please run as root:" \
+    errorExit "Unable to run as regular user. Please run as root:" \
               "  $ sudo sh $0"
 fi
 
 # Get script file and run directory
-me=$(dirname "$0")
+me=$(basename "$0")
 dir=`pwd`
 cd $(dirname "$0")
 bin=`pwd`
@@ -62,8 +55,8 @@ CB_ZIP="$CB_ROOT/crouton-buddy.tar.gz"
 
 # Ensure we are running from Downloads directory
 if [[ "$bin" != "$ROOT_DIR" ]]; then
-    errorExit "Running script from invalid directory" \
-              "Please ensure this is running from Downloads directory, otherwise things a likely to get screwy" \
+    errorExit "Running script from invalid directory." \
+              "Please ensure this is running from Downloads directory, otherwise things a likely to get screwy." \
               "You seem to be running this from $bin not $ROOT_DIR"
 fi
 
@@ -71,19 +64,19 @@ fi
 if [[ ! -d "$CB_ROOT" || ! -s "$CB_APP" ]]; then
     # Make applicatrion directory
     mkdir "$CB_ROOT" 2> /dev/null
-    [[ $? -eq 0 ]] || errorExit "Unable to create application directory ($CB_ROOT)"
+    [[ $? -eq 0 ]] || errorExit "Unable to create application directory ($CB_ROOT)."
 
     # Download scripts bundle
     curl $CB_URL -L -o $CB_ZIP
-    [[ $? -eq 0 ]] || errorExit "Unable to download application package"
+    [[ $? -eq 0 ]] || errorExit "Unable to download application package."
 
     # Extract scripts
     tar -zxf $CB_ZIP -C $CB_ROOT
-    [[ $? -eq 0 ]] || errorExit "Unable to extract application from package"
+    [[ $? -eq 0 ]] || errorExit "Unable to extract application from package."
 fi
 
 # Verify application scripts were installed
-[[ -d "$CB_ROOT" && -s "$CB_APP" ]] || errorExit "Unable to download application dependencies"
+[[ -d "$CB_ROOT" && -s "$CB_APP" ]] || errorExit "Unable to download application dependencies."
 
 # Finally run the applicable main application script
 . $CB_APP

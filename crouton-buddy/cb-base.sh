@@ -2,9 +2,10 @@
 
 # Set by caller:
 #
-# CB_ROOT
-# HOME_DIR
-# ROOT_DIR
+# me       => full path to caller (crouton-buddy.sh script)
+# CB_ROOT  => full path to Crouton Buddy application directory
+# HOME_DIR => full path to home directory
+# ROOT_DIR => full path to Downloads directory
 
 # Globals
 LINUX_RELEASE="xenial"
@@ -133,7 +134,7 @@ cbUpdate() {
 
 cbEnter() {
     # Ensure needed globals:
-    #[[ "$me"          != "" ]] || cbAbort "'me' not configured"
+    [[ "$me"          != "" ]] || cbAbort "'me' not configured"
     [[ "$CHROOT_ROOT" != "" ]] || cbAbort "CHROOT_ROOT not configured"
 
     cbInitAction "Enter and configure/manage environment" || return 1
@@ -158,15 +159,9 @@ cbEnter() {
     fi
 
     echo ""
-    if [ "$(cbConfirm "Are you sure you want to manage the environment $CHROOT_NAME")" -eq 0 ]; then
-        cbAcknowledgeAbort "Aborting environment management."
-        return 1
-    fi
 
     local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
-    # @placeholder:
-    sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/test-chroot.sh
-    #sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
+    sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
     return 1
 }
