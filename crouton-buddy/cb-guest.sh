@@ -133,6 +133,26 @@ cbCoreSetup() {
     return 1
 }
 
+cbCoreUpdate() {
+    cbStatus "Update installed packages"
+
+    if [[ "$(cbConfirm "Are you sure you want to update all installed packages")" -eq 0 ]]; then
+        cbAcknowledgeAbort "Aborting installation update."
+        return 1
+    fi
+
+    echo ""
+    cbInfo "Getting up-to-date"
+    echo ""
+    sudo apt update -y
+    sudo apt dist-upgrade -y
+    sudo apt autoremove -y
+
+    cbAcknowledge "Installation update complete."
+
+    return 1
+}
+
 cbGnome() {
     cbStatus "Gnome Desktop Setup"
 
@@ -159,6 +179,7 @@ cbGnome() {
     cbInfo "Removing replaced packages"
     echo ""
     sudo apt remove -y xterm
+    sudo apt autoremove -y
 
     cbAcknowledge "Gnome dekstop installed."
 
@@ -194,6 +215,7 @@ cbKde() {
 #
 menuItems=(
     "Install common dependencies and core system applications"
+    "Update all installed packages                           "
     "Gnome desktop setup                                     "
     #"KDE desktop setup                                       "
     "Desktop (general) packages                              "
@@ -202,6 +224,7 @@ menuItems=(
 
 menuActions=(
     cbCoreSetup
+    cbCoreUpdate
     cbGnome
     #cbKde
     'cbInstaller Desktop'
