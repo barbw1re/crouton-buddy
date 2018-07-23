@@ -83,7 +83,7 @@ menuActions=(
     cbPackages
     "cbP1 'Hello-p1'"
     'cbP2 "Hello-p2"'
-    'cbP1 "Another'"
+    'cbP1 "Another"'
     "return 0"
 )
 
