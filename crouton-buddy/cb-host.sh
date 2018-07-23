@@ -12,7 +12,7 @@ LINUX_RELEASE="xenial"
 CHROOT_ROOT="/mnt/stateful_partition/crouton/chroots"
 CROUTON_APP="$ROOT_DIR/crouton"
 CROUTON_BOOTSTRAP="$ROOT_DIR/$LINUX_RELEASE.tar.bz2"
-CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,keyboard,xorg,xiwi"
+CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,kde,keyboard,xorg,xiwi"
 
 # Load dependencies
 . "$CB_ROOT/cb-ui.sh"
@@ -68,6 +68,41 @@ cbCreate() {
     sudo sh $CROUTON_APP -n $CHROOT_NAME -f $CROUTON_BOOTSTRAP -t $CROUTON_TARGETS
 
     cbAcknowledge "New environment $CHROOT_NAME created."
+
+    return 1
+}
+
+cbConfigure() {
+    # Ensure needed globals:
+    [[ "$me"          != "" ]] || cbAbort "'me' not configured"
+    [[ "$CHROOT_ROOT" != "" ]] || cbAbort "CHROOT_ROOT not configured"
+
+    cbInitAction "Configure/manage environment" || return 1
+
+    if [[ $(cbCountChroots) -eq 0 ]]; then
+        cbAcknowledgeAbort "No environment found to manage."
+        return 1
+    fi
+
+    cbListChroots
+    CHROOT_NAME=`cbAsk "Enter name of environment to manage: "`
+    while [[ "$CHROOT_NAME" != "" && "$(cbIsChroot "$CHROOT_NAME")" -eq 0 ]]; do
+        echo ""
+        cbError "There is no environment named $CHROOT_NAME"
+        cbListChroots
+        CHROOT_NAME=`cbAsk "Enter name of environment to manage (or '' to abort): "`
+    done
+
+    if [[ "$CHROOT_NAME" = "" ]]; then
+        cbAcknowledgeAbort "Aborting environment management."
+        return 1
+    fi
+
+    echo ""
+
+    # Call Crouton to enter environment and execute crouton-buddy.sh script
+    local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
+    sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
     return 1
 }
@@ -201,41 +236,6 @@ cbUpdate() {
     sudo sh $CROUTON_APP -n $CHROOT_NAME -u
 
     cbAcknowledge "Environment updated."
-
-    return 1
-}
-
-cbConfigure() {
-    # Ensure needed globals:
-    [[ "$me"          != "" ]] || cbAbort "'me' not configured"
-    [[ "$CHROOT_ROOT" != "" ]] || cbAbort "CHROOT_ROOT not configured"
-
-    cbInitAction "Configure/manage environment" || return 1
-
-    if [[ $(cbCountChroots) -eq 0 ]]; then
-        cbAcknowledgeAbort "No environment found to manage."
-        return 1
-    fi
-
-    cbListChroots
-    CHROOT_NAME=`cbAsk "Enter name of environment to manage: "`
-    while [[ "$CHROOT_NAME" != "" && "$(cbIsChroot "$CHROOT_NAME")" -eq 0 ]]; do
-        echo ""
-        cbError "There is no environment named $CHROOT_NAME"
-        cbListChroots
-        CHROOT_NAME=`cbAsk "Enter name of environment to manage (or '' to abort): "`
-    done
-
-    if [[ "$CHROOT_NAME" = "" ]]; then
-        cbAcknowledgeAbort "Aborting environment management."
-        return 1
-    fi
-
-    echo ""
-
-    # Call Crouton to enter environment and execute crouton-buddy.sh script
-    local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
-    sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
     return 1
 }
@@ -408,11 +408,11 @@ cbPurge() {
 #
 menuItems=(
     "Create a new environment       "
+    "Configure/manage environment   "
     "Enter an environment (terminal)"
     "Start an environment (Gnome)   "
     "Start an environment (KDE)     "
     "Update an existing environment "
-    "Configure/manage environment   "
     "Backup environmewnt            "
     "Restore environment            "
     "Delete environment             "
@@ -423,11 +423,11 @@ menuItems=(
 
 menuActions=(
     cbCreate
+    cbConfigure
     cbEnter
     cbStartGnome
     cbStartKde
     cbUpdate
-    cbConfigure
     cbBackup
     cbRestore
     cbDelete

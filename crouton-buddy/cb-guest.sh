@@ -52,7 +52,10 @@ cbInstallApp() {
     eval installer="${app}_Install"
     eval verifier="${app}_Verify"
 
+    echo ""
     cbInfo "$name"
+    echo ""
+
     $verifier
     if [[ $? -eq 0 ]]; then
         cbWarning "$name is already installed"
@@ -60,6 +63,7 @@ cbInstallApp() {
     fi
 
     if [[ "$(cbConfirm "Would you like to install $name")" -eq 1 ]]; then
+        echo ""
         $installer
         $verifier
         if [[ $? -eq 1 ]]; then
@@ -77,7 +81,6 @@ cbInstaller() {
 
     for app in ${cbPackages[$package]} ; do
         cbInstallApp "$app"
-        echo ""
     done
 
     cbAcknowledge "$package package installed."
@@ -99,19 +102,30 @@ cbCoreSetup() {
         return 1
     fi
 
+    echo ""
     cbInfo "Installing package pre-requisites"
+    echo ""
     sudo apt install -y software-properties-common language-pack-en-base curl apt-transport-https ca-certificates
 
+    echo ""
     cbInfo "Installing common/core packages"
+    echo ""
     sudo apt install -y whoopsie mlocate preload vim xarchiver p7zip p7zip-rar
 
+    echo ""
     cbInfo "Removing unwanted packages"
+    echo ""
     sudo apt remove -y netsurf netsurf-common netsurf-fb netsurf-gtk
 
+    echo ""
     cbInfo "Getting up-to-date"
+    echo ""
     sudo apt dist-upgrade -y
+    sudo apt autoremove -y
 
+    echo ""
     cbInfo "Final environment cleanup"
+    echo ""
     sudo chown -R 1000:1000 "$HOME_DIR"
 
     cbAcknowledge "Environment core setup complete."
@@ -128,18 +142,22 @@ cbGnome() {
     fi
 
     echo ""
-
     cbInfo "Configuring system for Gnome"
+    echo ""
     sudo add-apt-repository -y ppa:gnome3-team/gnome3-staging
     sudo add-apt-repository -y ppa:gnome3-team/gnome3
     sudo apt update -y
 
+    echo ""
     cbInfo "Installing Gnome desktop"
+    echo ""
     sudo apt install -y gnome-tweak-tool gnome-terminal gnome-control-center gnome-online-accounts gnome-software gnome-software-common
     sudo apt install -y gnome-shell chrome-gnome-shell
     sudo apt install -y gnome-shell-extensions gnome-shell-extension-dashtodock gnome-shell-extension-taskbar gnome-shell-extensions-gpaste
 
+    echo ""
     cbInfo "Removing replaced packages"
+    echo ""
     sudo apt remove -y xterm
 
     cbAcknowledge "Gnome dekstop installed."
@@ -156,12 +174,14 @@ cbKde() {
     fi
 
     echo ""
-
     cbInfo "Configuring system for KDE"
+    echo ""
     sudo add-apt-repository -y ppa:kubuntu-ppa/backports
     sudo apt update -y
 
+    echo ""
     cbInfo "Installing Kubuntu desktop"
+    echo ""
     sudo apt-get install -y kubuntu-desktop
 
     cbAcknowledge "KDE dekstop installed."
@@ -175,7 +195,7 @@ cbKde() {
 menuItems=(
     "Install common dependencies and core system applications"
     "Gnome desktop setup                                     "
-    "KDE desktop setup                                       "
+    #"KDE desktop setup                                       "
     "Desktop (general) packages                              "
     "Common Developer packages                               "
 )
@@ -183,7 +203,7 @@ menuItems=(
 menuActions=(
     cbCoreSetup
     cbGnome
-    cbKde
+    #cbKde
     'cbInstaller Desktop'
     'cbInstaller Developer'
 )
