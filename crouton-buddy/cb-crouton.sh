@@ -92,3 +92,41 @@ cbListChroots() {
 
     echo ""
 }
+
+cbCountBackups() {
+    # Ensure needed globals:
+    [[ "$ROOT_DIR"    != "" ]] || cbAbort "ROOT_DIR not configured"
+    [[ -d "$ROOT_DIR" != "" ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
+
+    local file=""
+    local backup=""
+    local backupCount=0
+
+    for file in $ROOT_ROOT/* ; do
+        backup=`echo "$file" | grep -P "\-[0-9]{8}\-[0-9]{4}.tar.gz$"`
+        if [[ "$backup" != "" ]]; then
+            backupCount=$((backupCount+1))
+        fi
+    done
+
+    echo $backupCount
+    return $backupCount
+}
+
+cbListBackups() {
+    # Ensure needed globals:
+    [[ "$ROOT_DIR" != "" ]] || cbAbort "ROOT_DIR not configured"
+    [[ -d "$ROOT_DIR" != "" ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
+
+    if [[ $(cbCountBackups) -eq 0 ]]; then
+        echo " No available backups to restore"
+    else
+        echo " Available backup files to restore:"
+        for file in $ROOT_ROOT/* ; do
+            backup=`echo "$file" | grep -P "\-[0-9]{8}\-[0-9]{4}.tar.gz$"`
+            [[ "$backup" != "" ]] && echo " * $(basename "$backup")"
+        done
+    fi
+
+    echo ""
+}

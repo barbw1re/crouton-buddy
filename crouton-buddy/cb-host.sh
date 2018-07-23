@@ -277,11 +277,31 @@ cbBackup() {
 }
 
 cbRestore() {
+    # Ensure needed globals:
+    [[ "$ROOT_DIR" != "" ]] || cbAbort "ROOT_DIR not configured"
+
     cbInitAction "Restore environment" || return 1
 
-    #   Pick backup file from $CROUTON_ROOT
-    #       *** Can we restore specific version? ***
-    #       or notify abort action + get acknowledgement
+    if [[ $(cbCountBackups) -eq 0 ]]; then
+        cbAcknowledgeAbort "No backup files found to restore."
+        return 1
+    fi
+
+    cbListBackups
+    local backupFile=`cbAsk "Enter backup filename to restore: "`
+    while [[ "$backupFile" != "" && ! -f "$ROOT_DIR/$backupFile" ]]; do
+        echo ""
+        cbError "There is no backup file named $backupFile"
+        cbListBackups
+        backupFile=`cbAsk "Enter backup filename to restore (or '' to abort): "`
+    done
+
+    if [[ "$backupFile" = "" ]]; then
+        cbAcknowledgeAbort "Aborting environment restore."
+        return 1
+    fi
+
+    echo ""
 
     if [[ $(cbCountChroots) -gt 0 ]]; then
         cbListChroots
@@ -296,22 +316,22 @@ cbRestore() {
     echo ""
 
     if [[ "$(cbIsChroot "$CHROOT_NAME")" -eq 1 ]]; then
-        if [ "$(cbConfirm "Are you sure you want to overwrite environment $CHROOT_NAME with restore of XXXX")" -eq 0 ]; then
+        if [ "$(cbConfirm "Are you sure you want to overwrite environment $CHROOT_NAME with restore of $backupFile")" -eq 0 ]; then
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
         # Call Crouton to restore into existing environment
-        sudo edit-chroot -rr $CHROOT_NAME
+        sudo edit-chroot -rr $CHROOT_NAME -f "$ROOT_DIR/$backupFile"
     else
-        if [[ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of XXXX")" -eq 0 ]]; then
+        if [[ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of $backupFile")" -eq 0 ]]; then
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
         # Call Crouton to restore new environment
-        sudo edit-chroot -r $CHROOT_NAME
+        sudo edit-chroot -r $CHROOT_NAME -f "$ROOT_DIR/$backupFile"
     fi
 
-    cbAcknowledge "Environment created via restore."
+    cbAcknowledge "Environment $CHROOT_NAME restored."
 
     return 1
 }
