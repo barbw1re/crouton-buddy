@@ -397,6 +397,7 @@ menuItems=(
     "Restore environment            "
     "Delete environment             "
     "Purge cached bootstrap         "
+    "Update Crouton Buddy scripts   "
     "Quit                           "
 )
 
@@ -411,6 +412,7 @@ menuActions=(
     cbRestore
     cbDelete
     cbPurge
+    cbInstall
     "return 0"
 )
 

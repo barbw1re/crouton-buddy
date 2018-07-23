@@ -60,8 +60,8 @@ if [[ "$bin" != "$ROOT_DIR" ]]; then
               "You seem to be running this from $bin not $ROOT_DIR"
 fi
 
-# If we don't have the actual application scripts, download them
-if [[ ! -d "$CB_ROOT" || ! -s "$CB_APP" ]]; then
+# Download latest Crouton Buddy scripts
+cbInstall() {
     # Download scripts bundle
     curl $CB_URL -L -o $CB_ZIP
     [[ $? -eq 0 ]] || errorExit "Unable to download application package."
@@ -72,6 +72,11 @@ if [[ ! -d "$CB_ROOT" || ! -s "$CB_APP" ]]; then
 
     # Clean up
     [[ -f "$CB_ZIP" ]] && rm "$CB_ZIP"
+}
+
+# If we don't have the actual application scripts, download them
+if [[ ! -d "$CB_ROOT" || ! -s "$CB_APP" ]]; then
+    cbInstall
 fi
 
 # Verify application scripts were installed
