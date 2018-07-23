@@ -99,8 +99,6 @@ cbEnter() {
     # Finally - call Crouton to enter environment
     sudo enter-chroot -n $CHROOT_NAME
 
-    cbAcknowledge "Back from environment $CHROOT_NAME"
-
     return 1
 }
 

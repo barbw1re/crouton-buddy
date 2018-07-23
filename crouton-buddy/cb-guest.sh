@@ -127,6 +127,8 @@ cbGnome() {
         return 1
     fi
 
+    echo ""
+
     cbInfo "Configuring system for Gnome"
     sudo add-apt-repository -y ppa:gnome3-team/gnome3-staging
     sudo add-apt-repository -y ppa:gnome3-team/gnome3
@@ -152,6 +154,8 @@ cbKde() {
         cbAcknowledgeAbort "Aborting KDE desktop installation."
         return 1
     fi
+
+    echo ""
 
     cbInfo "Configuring system for KDE"
     sudo add-apt-repository -y ppa:kubuntu-ppa/backports
