@@ -93,20 +93,29 @@ cbListChroots() {
     echo ""
 }
 
+cbIsBackupFile() {
+    local ret=0
+    local file="$1"
+
+    # Confirm it's a tarball
+    if tar --test-label -f "$file" >/dev/null 2>&1; then
+        ret=1
+    fi
+
+    echo $ret
+    return $ret
+}
+
 cbCountBackups() {
     # Ensure needed globals:
-    [[ "$ROOT_DIR"    != "" ]] || cbAbort "ROOT_DIR not configured"
-    [[ -d "$ROOT_DIR" != "" ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
+    [[ "$ROOT_DIR" != "" ]] || cbAbort "ROOT_DIR not configured"
+    [[ -d "$ROOT_DIR"    ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
 
     local file=""
-    local backup=""
     local backupCount=0
 
     for file in $ROOT_ROOT/* ; do
-        backup=`echo "$file" | grep -P "\-[0-9]{8}\-[0-9]{4}.tar.gz$"`
-        if [[ "$backup" != "" ]]; then
-            backupCount=$((backupCount+1))
-        fi
+        [[ "$(cbIsBackupFile "$file")" -eq 1 ]] && backupCount=$((backupCount+1))
     done
 
     echo $backupCount
@@ -116,15 +125,16 @@ cbCountBackups() {
 cbListBackups() {
     # Ensure needed globals:
     [[ "$ROOT_DIR" != "" ]] || cbAbort "ROOT_DIR not configured"
-    [[ -d "$ROOT_DIR" != "" ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
+    [[ -d "$ROOT_DIR"    ]] || cbAbort "Unable to access ROOT_DIR ($ROOT_DIR)"
 
     if [[ $(cbCountBackups) -eq 0 ]]; then
         echo " No available backups to restore"
     else
         echo " Available backup files to restore:"
         for file in $ROOT_ROOT/* ; do
-            backup=`echo "$file" | grep -P "\-[0-9]{8}\-[0-9]{4}.tar.gz$"`
-            [[ "$backup" != "" ]] && echo " * $(basename "$backup")"
+            if [[ "$(cbIsBackupFile "$file")" -eq 1 ]]; then
+                echo " * $(basename "$file")"
+            fi
         done
     fi
 
