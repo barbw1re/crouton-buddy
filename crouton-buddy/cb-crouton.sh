@@ -98,7 +98,7 @@ cbIsBackupFile() {
     local file="$1"
 
     # Confirm it's a backup tarball
-    local label=`tar --test-label -f "$file" >/dev/null 2>&1`
+    local label=`tar --test-label -f "$file" 2> /dev/null`
     if [[ "$label" != "" && "`echo "$label" | grep crouton | grep backup`" != "" ]]; then
         ret=1
     fi
