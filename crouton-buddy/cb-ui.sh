@@ -53,7 +53,7 @@ cbError() {
 cbAcknowledge() {
     if [[ ! -z "$1" ]]; then
         echo ""
-        cbInfo "$@"
+        cbStatus "$@"
     fi
     read -p " Press enter to continue ... "
 }

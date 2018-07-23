@@ -2,10 +2,8 @@
 
 # Set by caller:
 #
-# #me       => full path to caller (crouton-buddy.sh script)
 # CB_ROOT  => full path to Crouton Buddy application directory
 # HOME_DIR => full path to home directory
-# #ROOT_DIR => full path to Downloads directory
 
 # Globals
 APPS_ROOT="$CB_ROOT/apps"
@@ -16,7 +14,7 @@ APPS_ROOT="$CB_ROOT/apps"
 . "$CB_ROOT/cb-common.sh"
 . "$CB_ROOT/menu/bash-menu.sh"
 
-declare -a cbPackages
+declare -A cbPackages
 cbPackages[Desktop]="Numix FileZilla"
 cbPackages[Developer]="Git VsCode"
 
@@ -37,38 +35,48 @@ cbVerifyApp() {
 #
 # Package Installer
 #
-cbInstaller() {
-    # Ensure needed globals:
-    [[ "$APPS_ROOT" != "" ]] || cbAbort "APPS_ROOT not configured"
-    [[ -d "$APPS_ROOT"    ]] || cbAbort "Unable to access APPS_ROOT"
+cbInstallApp() {
+    local app="$1"
+    local appScript=`cbVerifyApp "$app"`
 
+    if [[ "$appScript" = "" ]]; then
+        cbError "Unable to find installation script for $app"
+        return 1
+    fi
+
+    # Load app script
+    . "$appScript"
+
+    # App API
+    eval name='$'"${app}_App"
+    eval installer="${app}_Install"
+    eval verifier="${app}_Verify"
+
+    cbInfo "$name"
+    $verifier
+    if [[ $? -eq 0 ]]; then
+        cbWarning "$name is already installed"
+        return 0
+    fi
+
+    if [[ "$(cbConfirm "Would you like to install $name")" -eq 1 ]]; then
+        $installer
+        $verifier
+        if [[ $? -eq 1 ]]; then
+            cbAcknowledgeAbort "Failed to install $name"
+        fi
+    fi
+
+    return 0
+}
+
+cbInstaller() {
     local package="$1"
 
     cbStatus "Install $package package"
 
-    for app in ${cbPackages[$pacakge]} ; do
-        local appScript=`cbVerifyApp "$app"`
-        if [[ "$appScript" = "" ]]; then
-            cbError "Unable to find installation script for $app"
-            continue
-        fi
-
-        # Load app script
-        . "$appScript"
-
-        # App API
-        eval name='$'"${package}_App"
-        eval installer="${pacakge}_Install"
-        eval verifier="${pacakge}_Verify"
-
-        cbInfo "$name"
-        if [[ "$(cbConfirm "Would you like to install $name")" -eq 1 ]]; then
-            $installer
-            $verifier
-            if [[ $? -eq 1 ]]; then
-                cbAcknowledgeAbort "Failed to install $name"
-            fi
-        fi
+    for app in ${cbPackages[$package]} ; do
+        cbInstallApp "$app"
         echo ""
     done
 
@@ -85,6 +93,11 @@ cbCoreSetup() {
     [[ "$HOME_DIR" != "" ]] || cbAbort "HOME_DIR not configured"
 
     cbStatus "Environment core setup"
+
+    if [[ "$(cbConfirm "Are you sure you want to install the core environment packages")" -eq 0 ]]; then
+        cbAcknowledgeAbort "Aborting environment core setup."
+        return 1
+    fi
 
     cbInfo "Installing package pre-requisites"
     sudo apt install -y software-properties-common language-pack-en-base curl apt-transport-https ca-certificates
@@ -109,6 +122,11 @@ cbCoreSetup() {
 cbGnome() {
     cbStatus "Gnome Desktop Setup"
 
+    if [[ "$(cbConfirm "Are you sure you want to install the Gnome desktop")" -eq 0 ]]; then
+        cbAcknowledgeAbort "Aborting Gnome desktop installation."
+        return 1
+    fi
+
     cbInfo "Configuring system for Gnome"
     sudo add-apt-repository -y ppa:gnome3-team/gnome3-staging
     sudo add-apt-repository -y ppa:gnome3-team/gnome3
@@ -129,6 +147,11 @@ cbGnome() {
 
 cbKde() {
     cbStatus "KDE Desktop Setup"
+
+    if [[ "$(cbConfirm "Are you sure you want to install the KDE desktop")" -eq 0 ]]; then
+        cbAcknowledgeAbort "Aborting KDE desktop installation."
+        return 1
+    fi
 
     cbInfo "Configuring system for KDE"
     sudo add-apt-repository -y ppa:kubuntu-ppa/backports
@@ -151,7 +174,6 @@ menuItems=(
     "KDE desktop setup                                       "
     "Desktop (general) packages                              "
     "Common Developer packages                               "
-    "Quit                                                    "
 )
 
 menuActions=(
@@ -160,7 +182,6 @@ menuActions=(
     cbKde
     'cbInstaller Desktop'
     'cbInstaller Developer'
-    "return 0"
 )
 
 #
@@ -171,9 +192,35 @@ menuWidth=80
 menuHighlight=$DRAW_COL_BLUE
 
 #
+# Populate menu with available apps
+#
+cbLoadMenu() {
+    # @temporary: Disable this for now
+    return
+
+    if [[ -d "$APPS_ROOT" ]]; then
+        for app in $APPS_ROOT/*.sh ; do
+            local name=$(basename "$app" ".sh")
+            # @todo: Pad menu item to correct width for menu
+            menuItems+=( "$name" )
+            menuActions+=( "cbInstallApp $name" )
+        done
+    fi
+}
+
+#
 # Execute Script
 #
 cbRun() {
+    # Add available apps to menu
+    cbLoadMenu
+
+    # Add Quit option to end of menu
+    menuItems+=(
+        "Quit                                                    "
+    )
+    menuActions+=("return 0")
+
     menuInit
     menuLoop
 }
