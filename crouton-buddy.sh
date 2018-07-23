@@ -48,10 +48,10 @@ fi
 ROOT_DIR="$HOME_DIR/Downloads"
 
 # Crouton Buddy Paths
-CB_URL="https://"
+CB_URL="https://raw.githubusercontent.com/barbw1re/crouton-buddy/assets/crouton-buddy.tar.gz"
 CB_ROOT="$ROOT_DIR/crouton-buddy"
 [[ $IN_CHROOT -eq 1 ]] && CB_APP="$CB_ROOT/cb-guest.sh" || CB_APP="$CB_ROOT/cb-host.sh"
-CB_ZIP="$CB_ROOT/crouton-buddy.tar.gz"
+CB_ZIP="$ROOT_DIR/crouton-buddy.tar.gz"
 
 # Ensure we are running from Downloads directory
 if [[ "$bin" != "$ROOT_DIR" ]]; then
@@ -62,17 +62,16 @@ fi
 
 # If we don't have the actual application scripts, download them
 if [[ ! -d "$CB_ROOT" || ! -s "$CB_APP" ]]; then
-    # Make applicatrion directory
-    mkdir "$CB_ROOT" 2> /dev/null
-    [[ $? -eq 0 ]] || errorExit "Unable to create application directory ($CB_ROOT)."
-
     # Download scripts bundle
     curl $CB_URL -L -o $CB_ZIP
     [[ $? -eq 0 ]] || errorExit "Unable to download application package."
 
     # Extract scripts
-    tar -zxf $CB_ZIP -C $CB_ROOT
+    tar -zxf $CB_ZIP -C $ROOT_DIR
     [[ $? -eq 0 ]] || errorExit "Unable to extract application from package."
+
+    # Clean up
+    [[ -f "$CB_ZIP" ]] && rm "$CB_ZIP"
 fi
 
 # Verify application scripts were installed
