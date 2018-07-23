@@ -368,6 +368,8 @@ cbDelete() {
         return 1
     fi
 
+    echo ""
+
     # Finally - call Crouton to delete environment
     sudo delete-chroot $CHROOT_NAME
 
