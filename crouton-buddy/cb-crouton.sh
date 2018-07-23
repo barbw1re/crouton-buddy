@@ -97,8 +97,9 @@ cbIsBackupFile() {
     local ret=0
     local file="$1"
 
-    # Confirm it's a tarball
-    if tar --test-label -f "$file" >/dev/null 2>&1; then
+    # Confirm it's a backup tarball
+    local label=`tar --test-label -f "$file" >/dev/null 2>&1`
+    if [[ "$label" != "" && "`echo "$label" | grep crouton | grep backup`" != "" ]]; then
         ret=1
     fi
 
@@ -114,7 +115,7 @@ cbCountBackups() {
     local file=""
     local backupCount=0
 
-    for file in $ROOT_ROOT/* ; do
+    for file in $ROOT_DIR/* ; do
         [[ "$(cbIsBackupFile "$file")" -eq 1 ]] && backupCount=$((backupCount+1))
     done
 
@@ -131,7 +132,7 @@ cbListBackups() {
         echo " No available backups to restore"
     else
         echo " Available backup files to restore:"
-        for file in $ROOT_ROOT/* ; do
+        for file in $ROOT_DIR/* ; do
             if [[ "$(cbIsBackupFile "$file")" -eq 1 ]]; then
                 echo " * $(basename "$file")"
             fi
