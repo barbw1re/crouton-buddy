@@ -207,6 +207,10 @@ cbConfigure() {
     local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
     sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
+    if [ $? -ne 0 ]; then
+        cbError "There appears to be a problem entering $CHROOT_NAME"
+    fi
+
     return 1
 }
 

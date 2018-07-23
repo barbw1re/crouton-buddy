@@ -50,7 +50,7 @@ ROOT_DIR="$HOME_DIR/Downloads"
 # Crouton Buddy Paths
 CB_URL="https://"
 CB_ROOT="$ROOT_DIR/crouton-buddy"
-[[ $IN_CHROOT -eq 1 ]] && CB_APP="$CB_ROOT/cb-chroot.sh" || CB_APP="$CB_ROOT/cb-base.sh"
+[[ $IN_CHROOT -eq 1 ]] && CB_APP="$CB_ROOT/cb-guest.sh" || CB_APP="$CB_ROOT/cb-host.sh"
 CB_ZIP="$CB_ROOT/crouton-buddy.tar.gz"
 
 # Ensure we are running from Downloads directory
