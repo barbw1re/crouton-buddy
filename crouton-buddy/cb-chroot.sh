@@ -13,6 +13,34 @@
 . "$CB_ROOT/cb-common.sh"
 . "$CB_ROOT/menu/bash-menu.sh"
 
+declare -a cbPackages
+cbPackages[Developer]=(
+    Git
+    VsCode
+)
+
+#
+# Package Installer
+#
+cbInstaller() {
+    local package="$1"
+
+    cbStatus "Install $package package"
+
+    local apps=${cbPackages[$pacakge]}
+    for app in "${apps[@]}" ; do
+        cbInfo "$app"
+        if [ "$(cbConfirm "Would you like to install $app")" -eq 1 ]; then
+            # Install It
+        fi
+        echo ""
+    done
+
+    cbAcknowledge "$package package installed."
+
+    return 1
+}
+
 #
 # Menu item handlers
 #
@@ -39,51 +67,18 @@ cbCoreSetup() {
     return 1
 }
 
-cbPackages() {
-    # @needs:
-    #
-    # @steps:
-    #   Show action title
-
-    # @placeholder:
-    echo "Package Installation Manager"
-    read ans
-
-    return 1
-}
-
-cbP1() {
-    echo "P1 Package [$1] Installation Manager"
-    read ans
-
-    return 1
-}
-
-cbP2() {
-    echo "P2 Package [$1] Installation Manager"
-    read ans
-
-    return 1
-}
-
 #
 # Menu Setup
 #
 menuItems=(
     "Install common dependencies and core system applications"
-    "Package selector and installer                          "
-    "P1 Package test                                         "
-    "P2 Package test                                         "
-    "P1 Package test 2                                       "
+    "Install Developer (general) package                     "
     "Quit                                                    "
 )
 
 menuActions=(
     cbCoreSetup
-    cbPackages
-    "cbP1 'Hello-p1'"
-    'cbP2 "Hello-p2"'
-    'cbP1 "Another"'
+    "cbInstaller 'Developer'"
     "return 0"
 )
 
