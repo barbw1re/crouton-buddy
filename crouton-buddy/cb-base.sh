@@ -373,7 +373,7 @@ menuItems=(
 menuActions=(
     cbCreate
     cbEnter
-    chStart
+    cbStart
     cbUpdate
     cbConfigure
     cbBackup
