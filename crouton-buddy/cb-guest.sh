@@ -14,10 +14,7 @@
 . "$CB_ROOT/menu/bash-menu.sh"
 
 declare -a cbPackages
-cbPackages[Developer]=(
-    Git
-    VsCode
-)
+cbPackages[Developer]="Git VsCode"
 
 #
 # Package Installer
@@ -27,8 +24,7 @@ cbInstaller() {
 
     cbStatus "Install $package package"
 
-    local apps=${cbPackages[$pacakge]}
-    for app in "${apps[@]}" ; do
+    for app in "${cbPackages[$pacakge]}" ; do
         cbInfo "$app"
         if [ "$(cbConfirm "Would you like to install $app")" -eq 1 ]; then
             # Install It
