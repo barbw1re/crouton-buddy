@@ -361,7 +361,6 @@ menuItems=(
     "Enter an environment (terminal)"
     "Start an environment (gnome)   "
     "Update an existing environment "
-    "Update an existing environment "
     "Configure/manage environment   "
     "Backup environmewnt            "
     "Restore environment            "
