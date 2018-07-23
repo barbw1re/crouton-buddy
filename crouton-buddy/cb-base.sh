@@ -17,31 +17,8 @@ CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,keybo
 # Load dependencies
 . "$CB_ROOT/cb-ui.sh"
 . "$CB_ROOT/cb-crouton.sh"
+. "$CB_ROOT/cb-common.sh"
 . "$CB_ROOT/menu/bash-menu.sh"
-
-#
-# Helpers
-#
-
-# Abort with message
-cbAbort() {
-    cbError "$@"
-    exit 1
-}
-
-# Ensure setup and display action banner
-cbInitAction() {
-    cbStatus "$@"
-
-    cbEnsureCrouton "$CROUTON_APP"
-    if [ "$?" -eq 1 ]; then
-        cbError "ERROR: Unable to access (or download) crouton installer"
-        cbAcknowledge
-        return 1
-    fi
-
-    return 0
-}
 
 #
 # Menu item handlers
@@ -87,9 +64,74 @@ cbCreate() {
         return 1
     fi
 
+    # Finally - call Crouton to create new environment
     sudo sh $CROUTON_APP -n $CHROOT_NAME -f $CROUTON_BOOTSTRAP -t $CROUTON_TARGETS
 
     cbAcknowledge "New environment $CHROOT_NAME created."
+
+    return 1
+}
+
+cbEnter() {
+    cbInitAction "Open terminal to environment" || return 1
+
+    if [[ $(cbCountChroots) -eq 0 ]]; then
+        cbAcknowledgeAbort "No environment found to enter."
+        return 1
+    fi
+
+    cbListChroots
+    CHROOT_NAME=`cbAsk "Enter name of environment to enter: "`
+    while [[ "$CHROOT_NAME" != "" && "$(cbIsChroot "$CHROOT_NAME")" -eq 0 ]]; do
+        echo ""
+        cbError "There is no environment named $CHROOT_NAME"
+        cbListChroots
+        CHROOT_NAME=`cbAsk "Enter name of environment to enter (or '' to abort): "`
+    done
+
+    if [[ "$CHROOT_NAME" = "" ]]; then
+        cbAcknowledgeAbort "Aborting entering environment."
+        return 1
+    fi
+
+    echo ""
+
+    # Finally - call Crouton to enter environment
+    sudo enter-chroot -n $CHROOT_NAME
+
+    cbAcknowledge "Back from environment $CHROOT_NAME"
+
+    return 1
+}
+
+cbStart() {
+    cbInitAction "Start environment" || return 1
+
+    if [[ $(cbCountChroots) -eq 0 ]]; then
+        cbAcknowledgeAbort "No environment found to start."
+        return 1
+    fi
+
+    cbListChroots
+    CHROOT_NAME=`cbAsk "Enter name of environment to start: "`
+    while [[ "$CHROOT_NAME" != "" && "$(cbIsChroot "$CHROOT_NAME")" -eq 0 ]]; do
+        echo ""
+        cbError "There is no environment named $CHROOT_NAME"
+        cbListChroots
+        CHROOT_NAME=`cbAsk "Enter name of environment to start (or '' to abort): "`
+    done
+
+    if [[ "$CHROOT_NAME" = "" ]]; then
+        cbAcknowledgeAbort "Aborting starting environment."
+        return 1
+    fi
+
+    echo ""
+
+    # Finally - call Crouton to start gnome in background
+    sudo startgnome -n $CHROOT_NAME -b
+
+    cbAcknowledge "Environment started. Logout of $CHROOT_NAME to exit."
 
     return 1
 }
@@ -125,6 +167,7 @@ cbUpdate() {
         return 1
     fi
 
+    # Finally - call Crouton to update environment
     sudo sh $CROUTON_APP -n $CHROOT_NAME -u
 
     cbAcknowledge "Environment updated."
@@ -132,12 +175,12 @@ cbUpdate() {
     return 1
 }
 
-cbEnter() {
+cbConfigure() {
     # Ensure needed globals:
     [[ "$me"          != "" ]] || cbAbort "'me' not configured"
     [[ "$CHROOT_ROOT" != "" ]] || cbAbort "CHROOT_ROOT not configured"
 
-    cbInitAction "Enter and configure/manage environment" || return 1
+    cbInitAction "Configure/manage environment" || return 1
 
     if [[ $(cbCountChroots) -eq 0 ]]; then
         cbAcknowledgeAbort "No environment found to manage."
@@ -160,6 +203,7 @@ cbEnter() {
 
     echo ""
 
+    # Call Crouton to enter environment and execute crouton-buddy.sh script
     local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
     sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
@@ -194,6 +238,7 @@ cbBackup() {
         return 1
     fi
 
+    # Finally - call Crouton to backup environment
     sudo edit-chroot -b $CHROOT_NAME
 
     cbAcknowledge "Environment backup completed."
@@ -225,12 +270,14 @@ cbRestore() {
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
+        # Call Crouton to restore into existing environment
         sudo edit-chroot -rr $CHROOT_NAME
     else
         if [ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of XXXX")" -eq 0 ]; then
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
+        # Call Crouton to restore new environment
         sudo edit-chroot -r $CHROOT_NAME
     fi
 
@@ -267,6 +314,7 @@ cbDelete() {
         return 1
     fi
 
+    # Finally - call Crouton to delete environment
     sudo delete-chroot $CHROOT_NAME
 
     cbAcknowledge "Environment deleted."
@@ -309,20 +357,25 @@ cbPurge() {
 # Menu Setup
 #
 menuItems=(
-    "Create a new environment              "
-    "Update an existing environment        "
-    "Enter and configure/manage environment"
-    "Backup environmewnt                   "
-    "Restore environment                   "
-    "Delete environment                    "
-    "Purge cached bootstrap                "
-    "Quit                                  "
+    "Create a new environment       "
+    "Enter an environment (terminal)"
+    "Start an environment (gnome)   "
+    "Update an existing environment "
+    "Update an existing environment "
+    "Configure/manage environment   "
+    "Backup environmewnt            "
+    "Restore environment            "
+    "Delete environment             "
+    "Purge cached bootstrap         "
+    "Quit                           "
 )
 
 menuActions=(
     cbCreate
-    cbUpdate
     cbEnter
+    chStart
+    cbUpdate
+    cbConfigure
     cbBackup
     cbRestore
     cbDelete
