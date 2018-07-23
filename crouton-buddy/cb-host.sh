@@ -48,7 +48,7 @@ cbCreate() {
     fi
 
     echo ""
-    if [ "$(cbConfirm "Are you sure you want to create new environment $CHROOT_NAME")" -eq 0 ]; then
+    if [[ "$(cbConfirm "Are you sure you want to create new environment $CHROOT_NAME")" -eq 0 ]]; then
         cbAcknowledgeAbort "Aborting environment creation."
         return 1
     fi
@@ -59,7 +59,7 @@ cbCreate() {
     cbInfo "Creating installation of $LINUX_RELEASE as $CHROOT_NAME" \
            "Using targets: $CROUTON_TARGETS"
 
-    if [ "$(cbConfirm "Are you sure you want to create the new environment $CHROOT_NAME")" -eq 0 ]; then
+    if [[ "$(cbConfirm "Are you sure you want to create the new environment $CHROOT_NAME")" -eq 0 ]]; then
         cbAcknowledgeAbort "Aborting environment creation."
         return 1
     fi
@@ -104,8 +104,8 @@ cbEnter() {
     return 1
 }
 
-cbStart() {
-    cbInitAction "Start environment" || return 1
+cbStartGnome() {
+    cbInitAction "Start Gnome environment" || return 1
 
     if [[ $(cbCountChroots) -eq 0 ]]; then
         cbAcknowledgeAbort "No environment found to start."
@@ -130,6 +130,38 @@ cbStart() {
 
     # Finally - call Crouton to start gnome in background
     sudo startgnome -n $CHROOT_NAME -b
+
+    cbAcknowledge "Environment started. Logout of $CHROOT_NAME to exit."
+
+    return 1
+}
+
+cbStartKde() {
+    cbInitAction "Start KDE environment" || return 1
+
+    if [[ $(cbCountChroots) -eq 0 ]]; then
+        cbAcknowledgeAbort "No environment found to start."
+        return 1
+    fi
+
+    cbListChroots
+    CHROOT_NAME=`cbAsk "Enter name of environment to start: "`
+    while [[ "$CHROOT_NAME" != "" && "$(cbIsChroot "$CHROOT_NAME")" -eq 0 ]]; do
+        echo ""
+        cbError "There is no environment named $CHROOT_NAME"
+        cbListChroots
+        CHROOT_NAME=`cbAsk "Enter name of environment to start (or '' to abort): "`
+    done
+
+    if [[ "$CHROOT_NAME" = "" ]]; then
+        cbAcknowledgeAbort "Aborting starting environment."
+        return 1
+    fi
+
+    echo ""
+
+    # Finally - call Crouton to start KDE in background
+    sudo startkde -n $CHROOT_NAME -b
 
     cbAcknowledge "Environment started. Logout of $CHROOT_NAME to exit."
 
@@ -162,7 +194,7 @@ cbUpdate() {
     fi
 
     echo ""
-    if [ "$(cbConfirm "Are you sure you want to update environment $CHROOT_NAME")" -eq 0 ]; then
+    if [[ "$(cbConfirm "Are you sure you want to update environment $CHROOT_NAME")" -eq 0 ]]; then
         cbAcknowledgeAbort "Aborting environment update."
         return 1
     fi
@@ -207,10 +239,6 @@ cbConfigure() {
     local chrootUser=`ls $CHROOT_ROOT/$CHROOT_NAME/home/ | awk '{print $1}'`
     sudo enter-chroot -n $CHROOT_NAME -l sh /home/$chrootUser/Downloads/$me
 
-    if [ $? -ne 0 ]; then
-        cbError "There appears to be a problem entering $CHROOT_NAME"
-    fi
-
     return 1
 }
 
@@ -237,7 +265,7 @@ cbBackup() {
     fi
 
     echo ""
-    if [ "$(cbConfirm "Are you sure you want to backup environment $CHROOT_NAME")" -eq 0 ]; then
+    if [[ "$(cbConfirm "Are you sure you want to backup environment $CHROOT_NAME")" -eq 0 ]]; then
         cbAcknowledgeAbort "Aborting environment backup."
         return 1
     fi
@@ -277,7 +305,7 @@ cbRestore() {
         # Call Crouton to restore into existing environment
         sudo edit-chroot -rr $CHROOT_NAME
     else
-        if [ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of XXXX")" -eq 0 ]; then
+        if [[ "$(cbConfirm "Are you sure you want to create environment $CHROOT_NAME via restore of XXXX")" -eq 0 ]]; then
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
@@ -313,7 +341,7 @@ cbDelete() {
     fi
 
     echo ""
-    if [ "$(cbConfirm "Are you sure you want to delete environment $CHROOT_NAME")" -eq 0 ]; then
+    if [[ "$(cbConfirm "Are you sure you want to delete environment $CHROOT_NAME")" -eq 0 ]]; then
         cbAcknowledgeAbort "Aborting environment deletion."
         return 1
     fi
@@ -363,7 +391,8 @@ cbPurge() {
 menuItems=(
     "Create a new environment       "
     "Enter an environment (terminal)"
-    "Start an environment (gnome)   "
+    "Start an environment (Gnome)   "
+    "Start an environment (KDE)     "
     "Update an existing environment "
     "Configure/manage environment   "
     "Backup environmewnt            "
@@ -376,7 +405,8 @@ menuItems=(
 menuActions=(
     cbCreate
     cbEnter
-    cbStart
+    cbStartGnome
+    cbStartKde
     cbUpdate
     cbConfigure
     cbBackup

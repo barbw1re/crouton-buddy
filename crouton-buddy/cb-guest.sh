@@ -7,6 +7,9 @@
 # HOME_DIR => full path to home directory
 # #ROOT_DIR => full path to Downloads directory
 
+# Globals
+APPS_ROOT="$CB_ROOT/apps"
+
 # Load dependencies
 . "$CB_ROOT/cb-ui.sh"
 . "$CB_ROOT/cb-crouton.sh"
@@ -14,20 +17,57 @@
 . "$CB_ROOT/menu/bash-menu.sh"
 
 declare -a cbPackages
+cbPackages[Desktop]="Numix FileZilla"
 cbPackages[Developer]="Git VsCode"
+
+#
+# Helpers
+#
+cbVerifyApp() {
+    # Ensure needed globals:
+    [[ "$APPS_ROOT" != "" ]] || cbAbort "APPS_ROOT not configured"
+    [[ -d "$APPS_ROOT"    ]] || cbAbort "Unable to access APPS_ROOT"
+
+    local app="$1"
+    local appScript="$APPS_ROOT/$app.sh"
+
+    [[ -s "$appScript" ]] && echo "$appScript" || echo ""
+}
 
 #
 # Package Installer
 #
 cbInstaller() {
+    # Ensure needed globals:
+    [[ "$APPS_ROOT" != "" ]] || cbAbort "APPS_ROOT not configured"
+    [[ -d "$APPS_ROOT"    ]] || cbAbort "Unable to access APPS_ROOT"
+
     local package="$1"
 
     cbStatus "Install $package package"
 
-    for app in "${cbPackages[$pacakge]}" ; do
-        cbInfo "$app"
-        if [ "$(cbConfirm "Would you like to install $app")" -eq 1 ]; then
-            # Install It
+    for app in ${cbPackages[$pacakge]} ; do
+        local appScript=`cbVerifyApp "$app"`
+        if [[ "$appScript" = "" ]]; then
+            cbError "Unable to find installation script for $app"
+            continue
+        fi
+
+        # Load app script
+        . "$appScript"
+
+        # App API
+        eval name='$'"${package}_App"
+        eval installer="${pacakge}_Install"
+        eval verifier="${pacakge}_Verify"
+
+        cbInfo "$name"
+        if [[ "$(cbConfirm "Would you like to install $name")" -eq 1 ]]; then
+            $installer
+            $verifier
+            if [[ $? -eq 1 ]]; then
+                cbAcknowledgeAbort "Failed to install $name"
+            fi
         fi
         echo ""
     done
@@ -52,6 +92,9 @@ cbCoreSetup() {
     cbInfo "Installing common/core packages"
     sudo apt install -y whoopsie mlocate preload vim xarchiver p7zip p7zip-rar
 
+    cbInfo "Removing unwanted packages"
+    sudo apt remove -y netsurf netsurf-common netsurf-fb netsurf-gtk
+
     cbInfo "Getting up-to-date"
     sudo apt dist-upgrade -y
 
@@ -63,18 +106,60 @@ cbCoreSetup() {
     return 1
 }
 
+cbGnome() {
+    cbStatus "Gnome Desktop Setup"
+
+    cbInfo "Configuring system for Gnome"
+    sudo add-apt-repository -y ppa:gnome3-team/gnome3-staging
+    sudo add-apt-repository -y ppa:gnome3-team/gnome3
+    sudo apt update -y
+
+    cbInfo "Installing Gnome desktop"
+    sudo apt install -y gnome-tweak-tool gnome-terminal gnome-control-center gnome-online-accounts gnome-software gnome-software-common
+    sudo apt install -y gnome-shell chrome-gnome-shell
+    sudo apt install -y gnome-shell-extensions gnome-shell-extension-dashtodock gnome-shell-extension-taskbar gnome-shell-extensions-gpaste
+
+    cbInfo "Removing replaced packages"
+    sudo apt remove -y xterm
+
+    cbAcknowledge "Gnome dekstop installed."
+
+    return 1
+}
+
+cbKde() {
+    cbStatus "KDE Desktop Setup"
+
+    cbInfo "Configuring system for KDE"
+    sudo add-apt-repository -y ppa:kubuntu-ppa/backports
+    sudo apt update -y
+
+    cbInfo "Installing Kubuntu desktop"
+    sudo apt-get install -y kubuntu-desktop
+
+    cbAcknowledge "KDE dekstop installed."
+
+    return 1
+}
+
 #
 # Menu Setup
 #
 menuItems=(
     "Install common dependencies and core system applications"
-    "Install Developer (general) package                     "
+    "Gnome desktop setup                                     "
+    "KDE desktop setup                                       "
+    "Desktop (general) packages                              "
+    "Common Developer packages                               "
     "Quit                                                    "
 )
 
 menuActions=(
     cbCoreSetup
-    "cbInstaller 'Developer'"
+    cbGnome
+    cbKde
+    'cbInstaller Desktop'
+    'cbInstaller Developer'
     "return 0"
 )
 
