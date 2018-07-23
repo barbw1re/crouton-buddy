@@ -268,6 +268,8 @@ cbBackup() {
         return 1
     fi
 
+    echo ""
+
     # Finally - call Crouton to backup environment
     sudo edit-chroot -b $CHROOT_NAME
 
@@ -320,6 +322,7 @@ cbRestore() {
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
+        echo ""
         # Call Crouton to restore into existing environment
         sudo edit-chroot -rr $CHROOT_NAME -f "$ROOT_DIR/$backupFile"
     else
@@ -327,6 +330,7 @@ cbRestore() {
             cbAcknowledgeAbort "Aborting environment restore."
             return 1
         fi
+        echo ""
         # Call Crouton to restore new environment
         sudo edit-chroot -r $CHROOT_NAME -f "$ROOT_DIR/$backupFile"
     fi
