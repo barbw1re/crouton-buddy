@@ -16,29 +16,29 @@ In **guest** mode, when run inside a chroot, you are offered tasks to configure 
 
 ## Getting Started
 
-*Step 1 - Download Installer Script*
+#### Step 1 - Download Installer Script
 
 Download the latest script from https://raw.githubusercontent.com/barbw1re/crouton-buddy/master/crouton-buddy.sh and save to your **Downloads** directory on your chromebook.
 
-*Step 2 - Open a Terminal*
+#### Step 2 - Open a Terminal
 
 On your chromebook, press Ctrl-T to open a crosh terminal.
 
-*Step 3 - Enter a bash shell*
+#### Step 3 - Enter a bash shell
 
 Type `shell` to enter a bash shell:
 ```
 crosh> shell
 ```
 
-*Step 4 - Run the script*
+#### Step 4 - Run the script
 
 In your bash shell, run the script:
 ```
 chromos@localhost / $ sudo sh ~/Downloads/crouton-buddy.sh
 ```
 
-*Step 5 - Profit*
+#### Step 5 - Profit
 
 Err - yeah, profit!
 
@@ -52,27 +52,49 @@ Running outside a chroot will present you with the following:
 
 ![Host Menu](https://raw.githubusercontent.com/barbw1re/crouton-buddy/assets/host-menu.png)
 
-### Create a new environment
+#### Create a new environment
 
-### Configure/manage environment
+Create a new chroot environment..
 
-### Enter an environment (terminal)
+#### Configure/manage environment
 
-### Start an environment (Gnome)
+Enter the specified environment and run Crouton Buddy in **guest** mode to install and update packages.
 
-### Start an environment (KDE)
+#### Enter an environment (terminal)
 
-### Update an existing environment
+Open up a terminal to the specified environment.
 
-### Backup environment
+#### Start an environment (Gnome)
 
-### Restore environment
+Start Gnome (disconnected) on the specified environment.
 
-### Delete environment
+#### Start an environment (KDE)
 
-### Purge cached bootstrap
+Start KDE (disconnected) on the specified environment.
 
-### Update Crouton Buddy scripts
+#### Update an existing environment
+
+Update (via Crouton) the core of the specified environment.
+
+#### Backup environment
+
+Backup the specified environment.
+
+#### Restore environment
+
+Create a new chroot environment from a specified backup archive - either creating a new environment from scratch, or replacing an existing one.
+
+#### Delete environment
+
+Delete the specified environment.
+
+#### Purge cached bootstrap
+
+Delete the cached Crouton bootstrap to ensure subsequent installations use the latest version.
+
+#### Update Crouton Buddy scripts
+
+Update the Crouton Buddy installation to get any bug fixes or new application packages.
 
 ## Guest Action
 
@@ -80,26 +102,36 @@ Running inside a chroot will present you with the following:
 
 ![Host Menu](https://raw.githubusercontent.com/barbw1re/crouton-buddy/assets/guest-menu.png)
 
-### Install common dependencies and core system applications
+#### Install common dependencies and core system applications
 
-### Update all installed packages
+Update the Ubuntu installation to ensure it has very commonly expected packages installed such as the base English language pack and support for installing software over HTTPS.
 
-### Gnome desktop setup
+#### Update all installed packages
 
-### Desktop (general) packages
+Update all currently installed Ubuntu software.
 
-### Common Developer packages
+#### Gnome desktop setup
+
+Install the latest Gnome desktop, extensions, and utilities.
+
+#### Desktop (general) packages
+
+Choose from and install a selection of common desktop applications (see package index below).
+
+#### Common Developer packages
+
+Choose from and install a selection of common software developer applications (see package index below).
 
 ## Packages available for installing
 
 The following is a list of the applications currently packaged for installation into a chroot environment. They are broadly categorised to simplify selecting applications which are suitable for your current use-case.
 
-### Desktop Category
+#### Desktop Category
 
 * Numix
 * FileZilla
 
-### Developer Category
+#### Developer Category
 
 * Git
 * Visual Studio Code
