@@ -20,8 +20,10 @@ APPS_ROOT="$CB_ROOT/apps"
 
 # Application bundles
 declare -A cbPackages
-cbPackages[Desktop]="Numix FileZilla"
-cbPackages[Developer]="Git VsCode"
+cbPackages[Desktop]="Numix FileZilla FacebookMessenger Skype PopcornTime"
+cbPackages[Developer]="Git VsCode Docker PhpStorm"
+cbPackages[BackendDeveloper]="Php7 Composer Swoole MySqlWorkbench MongoDb RoboMongo"
+cbPackages[JsDeveloper]="NodeJS Bower Gulp Nodemon Browserify MeteorJS Vue React AngularJS"
 
 #
 # Ensure we can find the associated installer script for the specified application
@@ -69,7 +71,9 @@ cbInstallApp() {
     $verifier
     if (( ! $? )); then
         cbWarning "$name is already installed"
-        return 0
+        if (( ! "$(cbConfirm "Do you want to try to install $name anyway")" )); then
+            return 0
+        fi
     fi
 
     if (( "$(cbConfirm "Would you like to install $name")" )); then
@@ -91,6 +95,8 @@ cbInstaller() {
     local package="$1"
 
     cbStatus "Install $package package"
+
+    chInfo "Available applications: ${cbPackages[$package]}"
 
     for app in ${cbPackages[$package]} ; do
         cbInstallApp "$app"
@@ -138,12 +144,24 @@ cbCoreSetup() {
     cbInfo "Getting up-to-date"
     echo ""
     sudo apt dist-upgrade -y
-    sudo apt autoremove -y
+    sudo apt autoremove --purge -y
+
+    echo ""
+    cbInfo "Configuring locales"
+    echo ""
+    # @todo: Ask for and install/set default applicable locale
+    sudo locale-gen en_US.UTF-8
+    sudo locale-gen en_GB.UTF-8
+    sudo echo "LANG=en_US.UTF-8" >> /etc/default/locale
+    sudo echo "LANGUAGE=en_US.UTF-8" >> /etc/default/locale
+    sudo echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale
+    sudo sed -i "s/XKBMODEL=.*/XKBMODEL=\"chromebook\"/g" /etc/default/keyboard
 
     echo ""
     cbInfo "Final environment cleanup"
     echo ""
     sudo chown -R 1000:1000 "$HOME_DIR"
+    sudo updatedb
 
     cbAcknowledge "Environment core setup complete."
 
@@ -166,7 +184,8 @@ cbCoreUpdate() {
     echo ""
     sudo apt update -y
     sudo apt dist-upgrade -y
-    sudo apt autoremove -y
+    sudo apt autoremove --purge -y
+    sudo updatedb
 
     cbAcknowledge "Installation update complete."
 
@@ -202,7 +221,8 @@ cbGnome() {
     cbInfo "Removing replaced packages"
     echo ""
     sudo apt remove -y xterm
-    sudo apt autoremove -y
+    sudo apt autoremove --purge -y
+    sudo updatedb
 
     cbAcknowledge "Gnome dekstop installed."
 
@@ -248,6 +268,8 @@ menuItems=(
     #"KDE desktop setup                                       "
     "Desktop (general) packages                              "
     "Common Developer packages                               "
+    "Backend developer packages                              "
+    "JavaScript developer packages                           "
 )
 
 # Menu item action functions
@@ -258,6 +280,8 @@ menuActions=(
     #cbKde
     'cbInstaller Desktop'
     'cbInstaller Developer'
+    'cbInstaller BackendDeveloper'
+    'cbInstaller JsDeveloper'
 )
 
 # Menu configuration overrides
