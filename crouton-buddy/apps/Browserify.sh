@@ -4,7 +4,7 @@
 Browserify_App="Browserify"
 
 # Ensure dependencies
-Browserify_Ready() {
+browserify_Ready() {
     # Ensure we have npm installed
     npm -v > /dev/null 2>&1
     if (( $? )); then

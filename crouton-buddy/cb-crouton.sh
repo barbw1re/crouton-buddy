@@ -44,6 +44,7 @@ cbEnsureBootstrap() {
     if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then
         cbInfo "Downloading bootstrap for $LINUX_RELEASE ..."
         sudo sh $CROUTON_APP -d -f $CROUTON_BOOTSTRAP -r $LINUX_RELEASE -t $CROUTON_TARGETS
+        echo ""
 
         # Verify
         if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then

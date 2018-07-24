@@ -231,10 +231,13 @@ cbUpdate() {
     fi
 
     echo ""
+
     if (( ! "$(cbConfirm "Are you sure you want to update environment $chrootName")" )); then
         cbAcknowledgeAbort "Aborting environment update."
         return 1
     fi
+
+    echo ""
 
     # Finally - call Crouton to update environment
     sudo sh $CROUTON_APP -n $chrootName -u

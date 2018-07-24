@@ -11,6 +11,6 @@ Php7_Install() {
 # Application verification function
 # Return 0 if installed, 1 if not installed
 Php7_Verify() {
-    php -v > /dev/null 2>&1 | grep "7.0"
+    php -v 2> /dev/null | grep "7.0" > /dev/null
     return $?
 }

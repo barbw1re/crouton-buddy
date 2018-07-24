@@ -318,6 +318,8 @@ cbRun() {
     )
     menuActions+=("return 0")
 
+    export HOME=$HOME_DIR
+
     menuInit
     menuLoop
 }
