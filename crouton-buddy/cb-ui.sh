@@ -1,5 +1,9 @@
 #!/bin/bash
 
+################################################################
+# Fancy UI Helpers
+################################################################
+
 #
 # Colour Codes
 #
@@ -18,30 +22,44 @@ CB_COL_BG_BLUE="44"
 # Output message to screen
 #
 cbMessage() {
-    printf '%*s\n'  "${COLUMNS:-$(tput cols)}" '' | tr ' ' ' '
+    local screenWidth=$(tput cols)
+
+    printf '%*s\n' "${COLUMNS:-$screenWidth}" '' | tr ' ' ' '
     while [[ ! -z "$1" ]]; do
-        printf '%-*s\n' "${COLUMNS:-$(tput cols)}" "  $1" | tr ' ' ' '
+        printf '%-*s\n' "${COLUMNS:-$screenWidth}" "  $1" | tr ' ' ' '
         shift
     done
-    printf '%*s'    "${COLUMNS:-$(tput cols)}" '' | tr ' ' ' '
+    printf '%*s' "${COLUMNS:-$screenWidth}" '' | tr ' ' ' '
     printf "\033[${COL_RESET}m\n\n"
 }
 
+#
+# Output message with green background to screen
+#
 cbStatus() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_GREEN}m"
     cbMessage "$@"
 }
 
+#
+# Output message with blue background to screen
+#
 cbInfo() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_BLUE}m"
     cbMessage "$@"
 }
 
+#
+# Output message with yellow background to screen
+#
 cbWarning() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_YELLOW}m"
     cbMessage "$@"
 }
 
+#
+# Output message with red background to screen
+#
 cbError() {
     printf "\033[${CB_COL_BOLD};${CB_COL_WHITE};${CB_COL_BG_RED}m"
     cbMessage "$@"
@@ -49,6 +67,7 @@ cbError() {
 
 #
 # Get acknowledgement from user
+# Optionally display a status (green background) message
 #
 cbAcknowledge() {
     if [[ ! -z "$1" ]]; then
@@ -60,6 +79,7 @@ cbAcknowledge() {
 
 #
 # Get acknowledgement of abort from user
+# Optionally display a warning (yellow background) message
 #
 cbAcknowledgeAbort() {
     if [[ ! -z "$1" ]]; then
@@ -70,7 +90,7 @@ cbAcknowledgeAbort() {
 }
 
 #
-# Get a response from user
+# Get a text response from user
 #
 cbAsk() {
     read -p " $*" resp

@@ -1,24 +1,30 @@
 #!/bin/bash
 
-#
+################################################################
 # Common Helpers
-#
+################################################################
 
-# Abort with message
+#
+# Terminate with message
+#
 cbAbort() {
     cbError "$@"
     exit 1
 }
 
-# Ensure setup and display action banner
+#
+# Ensure common setup and display action banner
+#
+# Return 0 on success, 1 on error
+#
 cbInitAction() {
     # Ensure needed globals:
-    [[ "$CROUTON_APP"       != "" ]] || cbAbort "CROUTON_APP not configured"
+    [[ "$CROUTON_APP" ]] || cbAbort "CROUTON_APP not configured"
 
     cbStatus "$@"
 
     cbEnsureCrouton "$CROUTON_APP"
-    if [ "$?" -eq 1 ]; then
+    if (( $? )); then
         cbError "ERROR: Unable to access (or download) crouton installer"
         cbAcknowledge
         return 1

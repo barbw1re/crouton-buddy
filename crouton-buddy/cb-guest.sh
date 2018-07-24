@@ -1,5 +1,9 @@
 #!/bin/bash
 
+################################################################
+# Guest (inside chroot) Menu
+################################################################
+
 # Set by caller:
 #
 # CB_ROOT  => full path to Crouton Buddy application directory
@@ -14,17 +18,20 @@ APPS_ROOT="$CB_ROOT/apps"
 . "$CB_ROOT/cb-common.sh"
 . "$CB_ROOT/menu/bash-menu.sh"
 
+# Application bundles
 declare -A cbPackages
 cbPackages[Desktop]="Numix FileZilla"
 cbPackages[Developer]="Git VsCode"
 
 #
-# Helpers
+# Ensure we can find the associated installer script for the specified application
+#
+# Return full path to script, or "" if not found
 #
 cbVerifyApp() {
     # Ensure needed globals:
-    [[ "$APPS_ROOT" != "" ]] || cbAbort "APPS_ROOT not configured"
-    [[ -d "$APPS_ROOT"    ]] || cbAbort "Unable to access APPS_ROOT"
+    [[ "$APPS_ROOT"    ]] || cbAbort "APPS_ROOT not configured"
+    [[ -d "$APPS_ROOT" ]] || cbAbort "Unable to access APPS_ROOT"
 
     local app="$1"
     local appScript="$APPS_ROOT/$app.sh"
@@ -33,13 +40,16 @@ cbVerifyApp() {
 }
 
 #
-# Package Installer
+# Install the application associated with the provided name.
+#
+# This skips the install if the application is already installed.
+# This will require the user confirm they want to install the application.
 #
 cbInstallApp() {
     local app="$1"
     local appScript=`cbVerifyApp "$app"`
 
-    if [[ "$appScript" = "" ]]; then
+    if [[ ! "$appScript" ]]; then
         cbError "Unable to find installation script for $app"
         return 1
     fi
@@ -57,23 +67,26 @@ cbInstallApp() {
     echo ""
 
     $verifier
-    if [[ $? -eq 0 ]]; then
+    if (( ! $? )); then
         cbWarning "$name is already installed"
         return 0
     fi
 
-    if [[ "$(cbConfirm "Would you like to install $name")" -eq 1 ]]; then
+    if (( "$(cbConfirm "Would you like to install $name")" )); then
         echo ""
         $installer
         $verifier
-        if [[ $? -eq 1 ]]; then
-            cbAcknowledgeAbort "Failed to install $name"
-        fi
+        (( $? )) && cbAcknowledgeAbort "Failed to install $name"
     fi
 
     return 0
 }
 
+#
+# Install all applications associated with the specified package/bundle.
+# This will require a confirmation from the user before installing each application
+# so they can be selective about which specific applications in the package thay want installed.
+#
 cbInstaller() {
     local package="$1"
 
@@ -88,16 +101,20 @@ cbInstaller() {
     return 1
 }
 
-#
+################################################################
 # Menu item handlers
+################################################################
+
+#
+# Perform the core environment setup
 #
 cbCoreSetup() {
     # Ensure needed globals:
-    [[ "$HOME_DIR" != "" ]] || cbAbort "HOME_DIR not configured"
+    [[ "$HOME_DIR" ]] || cbAbort "HOME_DIR not configured"
 
     cbStatus "Environment core setup"
 
-    if [[ "$(cbConfirm "Are you sure you want to install the core environment packages")" -eq 0 ]]; then
+    if (( ! "$(cbConfirm "Are you sure you want to install the core environment packages")" )); then
         cbAcknowledgeAbort "Aborting environment core setup."
         return 1
     fi
@@ -133,10 +150,13 @@ cbCoreSetup() {
     return 1
 }
 
+#
+# Update and cleanup installed applications
+#
 cbCoreUpdate() {
     cbStatus "Update installed packages"
 
-    if [[ "$(cbConfirm "Are you sure you want to update all installed packages")" -eq 0 ]]; then
+    if (( ! "$(cbConfirm "Are you sure you want to update all installed packages")" )); then
         cbAcknowledgeAbort "Aborting installation update."
         return 1
     fi
@@ -153,10 +173,13 @@ cbCoreUpdate() {
     return 1
 }
 
+#
+# Install Gnome desktop
+#
 cbGnome() {
     cbStatus "Gnome Desktop Setup"
 
-    if [[ "$(cbConfirm "Are you sure you want to install the Gnome desktop")" -eq 0 ]]; then
+    if (( ! "$(cbConfirm "Are you sure you want to install the Gnome desktop")" )); then
         cbAcknowledgeAbort "Aborting Gnome desktop installation."
         return 1
     fi
@@ -186,10 +209,13 @@ cbGnome() {
     return 1
 }
 
+#
+# Install KDE desktop
+#
 cbKde() {
     cbStatus "KDE Desktop Setup"
 
-    if [[ "$(cbConfirm "Are you sure you want to install the KDE desktop")" -eq 0 ]]; then
+    if (( ! "$(cbConfirm "Are you sure you want to install the KDE desktop")" )); then
         cbAcknowledgeAbort "Aborting KDE desktop installation."
         return 1
     fi
@@ -210,9 +236,11 @@ cbKde() {
     return 1
 }
 
-#
+################################################################
 # Menu Setup
-#
+################################################################
+
+# Menu item labels
 menuItems=(
     "Install common dependencies and core system applications"
     "Update all installed packages                           "
@@ -222,6 +250,7 @@ menuItems=(
     "Common Developer packages                               "
 )
 
+# Menu item action functions
 menuActions=(
     cbCoreSetup
     cbCoreUpdate
@@ -231,15 +260,13 @@ menuActions=(
     'cbInstaller Developer'
 )
 
-#
-# Menu Configuration
-#
+# Menu configuration overrides
 menuTitle=" Crouton Environment Manager"
 menuWidth=80
 menuHighlight=$DRAW_COL_BLUE
 
 #
-# Populate menu with available apps
+# Populate menu with available apps in apps/ directory
 #
 cbLoadMenu() {
     # @temporary: Disable this for now
@@ -255,9 +282,9 @@ cbLoadMenu() {
     fi
 }
 
-#
+################################################################
 # Execute Script
-#
+################################################################
 cbRun() {
     # Add available apps to menu
     cbLoadMenu

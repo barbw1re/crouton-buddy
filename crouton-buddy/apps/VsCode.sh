@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Application display name
 VsCode_App="Microsoft Visual Studio Code IDE"
 
+# Application install function
 VsCode_Install() {
     local needUpdate=0
 
@@ -16,12 +18,14 @@ VsCode_Install() {
         needUpdate=1
     fi
 
-    [[ $needUpdate -eq 1 ]] && sudo apt update -y
+    (( $needUpdate )) && sudo apt update -y
 
     # Install VS Code
     sudo apt install -y code
 }
 
+# Application verification function
+# Return 0 if installed, 1 if not installed
 VsCode_Verify() {
-    [[ "`which code 2> /dev/null`" = "" ]] && return 1 || return 0
+    [[ "`which code 2> /dev/null`" ]] && return 0 || return 1
 }
