@@ -94,9 +94,8 @@ cbInstallApp() {
 cbInstaller() {
     local package="$1"
 
-    cbStatus "Install $package package"
-
-    chInfo "Available applications: ${cbPackages[$package]}"
+    cbStatus "Install $package package" \
+             "Available applications: ${cbPackages[$package]}"
 
     for app in ${cbPackages[$package]} ; do
         cbInstallApp "$app"
