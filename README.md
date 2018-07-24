@@ -114,13 +114,9 @@ Update all currently installed Ubuntu software.
 
 Install the latest Gnome desktop, extensions, and utilities.
 
-#### Desktop (general) packages
+#### XXXX packages
 
-Choose from and install a selection of common desktop applications (see package index below).
-
-#### Common Developer packages
-
-Choose from and install a selection of common software developer applications (see package index below).
+The following menu items allow the user to select and install applications applicable to the role described, such as "Desktop", "JavaScript Developer" etc. For a list of available packages applications, see the package index below.
 
 ## Packages available for installing
 
@@ -130,11 +126,37 @@ The following is a list of the applications currently packaged for installation 
 
 * Numix
 * FileZilla
+* Facebook Messenger
+* Skype
+* Popcorn Time
 
-#### Developer Category
+#### Common Developer Category
 
 * Git
 * Visual Studio Code
+* Docker
+* PHP Storm
+
+#### Backend Developer Category
+
+* PHP 7.0
+* Composer
+* Swoole
+* MySQL Workbench
+* MongoDB
+* RoboMongo
+
+#### Javascript Developer Category
+
+* NodeJS
+* Bower
+* Gulp
+* Nodemon
+* Browserify
+* MeteorJS
+* Vue
+* React
+* AngularJS
 
 ## Versioning
 
