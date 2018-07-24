@@ -419,7 +419,7 @@ menuItems=(
     "Start an environment (Gnome)   "
     "Start an environment (KDE)     "
     "Update an existing environment "
-    "Backup environmewnt            "
+    "Backup environment             "
     "Restore environment            "
     "Delete environment             "
     "Purge cached bootstrap         "

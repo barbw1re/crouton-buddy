@@ -17,24 +17,29 @@ In **guest** mode, when run inside a chroot, you are offered tasks to configure 
 ## Getting Started
 
 *Step 1 - Download Installer Script*
+
 Download the latest script from https://raw.githubusercontent.com/barbw1re/crouton-buddy/master/crouton-buddy.sh and save to your **Downloads** directory on your chromebook.
 
 *Step 2 - Open a Terminal*
+
 On your chromebook, press Ctrl-T to open a crosh terminal.
 
 *Step 3 - Enter a bash shell*
+
 Type `shell` to enter a bash shell:
 ```
 crosh> shell
 ```
 
 *Step 4 - Run the script*
+
 In your bash shell, run the script:
 ```
 chromos@localhost / $ sudo sh ~/Downloads/crouton-buddy.sh
 ```
 
 *Step 5 - Profit*
+
 Err - yeah, profit!
 
 ## Prerequisites
@@ -47,15 +52,61 @@ Running outside a chroot will present you with the following:
 
 ![Host Menu](https://raw.githubusercontent.com/barbw1re/crouton-buddy/assets/host-menu.png)
 
+### Create a new environment
+
+### Configure/manage environment
+
+### Enter an environment (terminal)
+
+### Start an environment (Gnome)
+
+### Start an environment (KDE)
+
+### Update an existing environment
+
+### Backup environment
+
+### Restore environment
+
+### Delete environment
+
+### Purge cached bootstrap
+
+### Update Crouton Buddy scripts
+
 ## Guest Action
 
 Running inside a chroot will present you with the following:
 
 ![Host Menu](https://raw.githubusercontent.com/barbw1re/crouton-buddy/assets/guest-menu.png)
 
+### Install common dependencies and core system applications
+
+### Update all installed packages
+
+### Gnome desktop setup
+
+### Desktop (general) packages
+
+### Common Developer packages
+
+## Packages available for installing
+
+The following is a list of the applications currently packaged for installation into a chroot environment. They are broadly categorised to simplify selecting applications which are suitable for your current use-case.
+
+### Desktop Category
+
+* Numix
+* FileZilla
+
+### Developer Category
+
+* Git
+* Visual Studio Code
+
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/barbw1re/crouton-buddy/tags).
+Versioning follows [SemVer](http://semver.org/) (or tries to, at least) For the versions available, see the [tags on this repository](https://github.com/barbw1re/crouton-buddy/tags).
 
 ## Authors
 
