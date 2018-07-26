@@ -20,8 +20,8 @@ APPS_ROOT="$CB_ROOT/apps"
 
 # Application bundles
 declare -A cbPackages
-cbPackages[Desktop]="Numix FileZilla FacebookMessenger Skype PopcornTime"
-cbPackages[Developer]="Git VsCode Docker PhpStorm"
+cbPackages[Desktop]="Numix FileZilla Stacer FacebookMessenger Skype PopcornTime"
+cbPackages[Developer]="Git VsCode Insomnia Kiki Docker PhpStorm"
 cbPackages[BackendDeveloper]="Php7 Composer Swoole MySqlWorkbench MongoDb RoboMongo"
 cbPackages[JsDeveloper]="NodeJS Bower Gulp Nodemon Browserify MeteorJS Vue React AngularJS"
 
