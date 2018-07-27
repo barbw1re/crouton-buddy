@@ -12,10 +12,12 @@
 # ROOT_DIR => full path to Downloads directory
 
 # Globals
-LINUX_RELEASE="xenial"
+LINUX_RELEASE=""
+DEFAULT_LINUX_RELEASE="xenial"
+
 CHROOT_ROOT="/mnt/stateful_partition/crouton/chroots"
+
 CROUTON_APP="$ROOT_DIR/crouton"
-CROUTON_BOOTSTRAP="$ROOT_DIR/$LINUX_RELEASE.tar.bz2"
 CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,kde,keyboard,xorg,xiwi"
 
 # Load dependencies
@@ -27,12 +29,21 @@ CROUTON_TARGETS="core,audio,x11,chrome,cli-extra,extension,gtk-extra,gnome,kde,k
 #
 # Menu item handlers
 #
+cbTest() {
+    cbInitAction "Test this Action" || return 1
+
+    cbEnsureRelease
+    local release="$LINUX_RELEASE"
+
+    cbAcknowledge "Release \"$release\" selected"
+
+    return 1
+}
+
 cbCreate() {
     # Ensure needed globals:
     [[ "$CROUTON_APP"       ]] || cbAbort "CROUTON_APP not configured"
-    [[ "$CROUTON_BOOTSTRAP" ]] || cbAbort "CROUTON_BOOTSTRAP not configured"
     [[ "$CROUTON_TARGETS"   ]] || cbAbort "CROUTON_TARGETS not configured"
-    [[ "$LINUX_RELEASE"     ]] || cbAbort "LINUX_RELEASE not configured"
 
     cbInitAction "Create a new environment" || return 1
 
@@ -58,6 +69,8 @@ cbCreate() {
     fi
     echo ""
 
+    # This will ensure LINUX_RELEASE is set
+    local bootstrap=`cbBootstrapFilename`
     cbEnsureBootstrap || return 1
 
     cbInfo "Creating installation of $LINUX_RELEASE as $chrootName" \
@@ -69,7 +82,7 @@ cbCreate() {
     fi
 
     # Finally - call Crouton to create new environment
-    sudo sh $CROUTON_APP -n $chrootName -f $CROUTON_BOOTSTRAP -t $CROUTON_TARGETS
+    sudo sh $CROUTON_APP -n $chrootName -f $bootstrap -t $CROUTON_TARGETS
 
     cbAcknowledge "New environment $chrootName created."
 
@@ -386,14 +399,13 @@ cbDelete() {
 }
 
 cbPurge() {
-    # Ensure needed globals:
-    [[ "$CROUTON_BOOTSTRAP" ]] || cbAbort "CROUTON_BOOTSTRAP not configured"
-    [[ "$LINUX_RELEASE"     ]] || cbAbort "LINUX_RELEASE not configured"
-
     cbInitAction "Purge cached bootstrap" || return 1
 
-    if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then
-        cbAcknowledgeAbort "No cached bootstrap for $LINUX_RELEASE found (expected $CROUTON_BOOTSTRAP)"
+    # This will ensure LINUX_RELEASE is set
+    local bootstrap=`cbBootstrapFilename`
+
+    if [[ ! -s "$bootstrap" ]]; then
+        cbAcknowledgeAbort "No cached bootstrap for $LINUX_RELEASE found (expected $bootstrap)"
         return 1
     fi
 
@@ -402,10 +414,10 @@ cbPurge() {
         return 1
     fi
 
-    sudo rm "$CROUTON_BOOTSTRAP"
+    sudo rm "$bootstrap"
     local ret=$?
 
-    if [[ $ret -ne 0 || -s "$CROUTON_BOOTSTRAP" ]]; then
+    if [[ $ret -ne 0 || -s "$bootstrap" ]]; then
         cbError "ERROR: Unable to purge $LINUX_RELEASE bootstrap"
         cbAcknowledge
         return 1
@@ -416,12 +428,26 @@ cbPurge() {
     return 1
 }
 
+cbConfigureGuests() {
+    cbInitAction "Configure Crouton Guests" || return 1
+
+    local release="$LINUX_RELEASE"
+    LINUX_RELEASE=""
+
+    cbEnsureRelease "$release"
+
+    cbAcknowledge "Crouton Configured"
+
+    return 1
+}
+
 ################################################################
 # Menu Setup
 ################################################################
 
 # Menu item labels
 menuItems=(
+    "Test Action for Development    "
     "Create a new environment       "
     "Configure/manage environment   "
     "Enter an environment (terminal)"
@@ -432,12 +458,14 @@ menuItems=(
     "Restore environment            "
     "Delete environment             "
     "Purge cached bootstrap         "
+    "Configure Crouton Guests       "
     "Update Crouton Buddy scripts   "
     "Quit                           "
 )
 
 # Menu item action functions
 menuActions=(
+    cbTest
     cbCreate
     cbConfigure
     cbEnter
@@ -448,6 +476,7 @@ menuActions=(
     cbRestore
     cbDelete
     cbPurge
+    cbConfigureGuests
     cbInstall
     "return 0"
 )

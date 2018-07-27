@@ -30,6 +30,69 @@ cbEnsureCrouton() {
 }
 
 #
+# Get a release from the user if LINUX_RELEASE is blank
+# and set validated value to LINUX_RELEASE
+#
+# Optionally pass in the release to use as default
+# (overriding $DEFAULT_LINUX_RELEASE).
+#
+cbEnsureRelease() {
+    # Early exit if we already have LINUX_RELEASE
+    [[ "$LINUX_RELEASE" ]] && return
+
+    # Ensure needed globals:
+    [[ "$DEFAULT_LINUX_RELEASE" ]] || cbAbort "DEFAULT_LINUX_RELEASE not configured"
+
+    local release=""
+    local releases="xenial bionic"
+    local defaultRelease="$DEFAULT_LINUX_RELEASE"
+
+    [[ ! -z "$1" ]] && defaultRelease="$1"
+
+    while true ; do
+        echo " Available Ubuntu releases:"
+        for release in $releases ; do
+            echo " * $release"
+        done
+        echo ""
+        release=`cbAsk "Enter a release (or hit enter to use the default release - $defaultRelease): "`
+
+        # If blank - we can use default
+        [[ "$release" ]] || break
+
+        # Validate entered release against our list
+        local found=0
+        for check in $releases ; do
+            if [[ "${release,,}" = "${check,,}" ]]; then
+                release="${release,,}"
+                found=1
+                break
+            fi
+        done
+        (( $found )) && break
+
+        echo ""
+        cbError "$release is an invalid release."
+    done
+
+    [[ "$release" ]] || release="$defaultRelease"
+
+    LINUX_RELEASE="$release"
+}
+
+#
+# Return bootstrap filename
+#
+cbBootstrapFilename() {
+    # Ensure needed globals:
+    [[ "$ROOT_DIR"              ]] || cbAbort "ROOT_DIR not configured"
+
+    cbEnsureRelease
+
+    echo "$ROOT_DIR/$LINUX_RELEASE.tar.bz2"
+}
+
+#
 # Download a Crouton bootstrap using our current targets if it is missing
 #
 # Return 0 on success, 1 on failure
@@ -37,17 +100,17 @@ cbEnsureCrouton() {
 cbEnsureBootstrap() {
     # Ensure needed globals:
     [[ "$CROUTON_APP"       ]] || cbAbort "CROUTON_APP not configured"
-    [[ "$CROUTON_BOOTSTRAP" ]] || cbAbort "CROUTON_BOOTSTRAP not configured"
     [[ "$CROUTON_TARGETS"   ]] || cbAbort "CROUTON_TARGETS not configured"
-    [[ "$LINUX_RELEASE"     ]] || cbAbort "LINUX_RELEASE not configured"
 
-    if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then
+    local bootstrap=`cbBootstrapFilename`
+
+    if [[ ! -s "$bootstrap" ]]; then
         cbInfo "Downloading bootstrap for $LINUX_RELEASE ..."
-        sudo sh $CROUTON_APP -d -f $CROUTON_BOOTSTRAP -r $LINUX_RELEASE -t $CROUTON_TARGETS
+        sudo sh $CROUTON_APP -d -f $bootstrap -r $LINUX_RELEASE -t $CROUTON_TARGETS
         echo ""
 
         # Verify
-        if [[ ! -s "$CROUTON_BOOTSTRAP" ]]; then
+        if [[ ! -s "$bootstrap" ]]; then
             cbError "ERROR: Unable to download the $LINUX_RELEASE bootstrap"
             return 1
         fi
