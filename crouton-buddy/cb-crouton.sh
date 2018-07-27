@@ -85,9 +85,8 @@ cbEnsureRelease() {
 #
 cbBootstrapFilename() {
     # Ensure needed globals:
-    [[ "$ROOT_DIR"              ]] || cbAbort "ROOT_DIR not configured"
-
-    cbEnsureRelease
+    [[ "$ROOT_DIR"      ]] || cbAbort "ROOT_DIR not configured"
+    [[ "$LINUX_RELEASE" ]] || cbAbort "LINUX_RELEASE not configured"
 
     echo "$ROOT_DIR/$LINUX_RELEASE.tar.bz2"
 }
@@ -101,6 +100,9 @@ cbEnsureBootstrap() {
     # Ensure needed globals:
     [[ "$CROUTON_APP"       ]] || cbAbort "CROUTON_APP not configured"
     [[ "$CROUTON_TARGETS"   ]] || cbAbort "CROUTON_TARGETS not configured"
+
+    # Make sure we ensure LINUX_RELEASE is set first
+    cbEnsureRelease
 
     local bootstrap=`cbBootstrapFilename`
 

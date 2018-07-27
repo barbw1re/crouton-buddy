@@ -69,7 +69,9 @@ cbCreate() {
     fi
     echo ""
 
-    # This will ensure LINUX_RELEASE is set
+    # Make sure we ensure LINUX_RELEASE is set first
+    cbEnsureRelease
+
     local bootstrap=`cbBootstrapFilename`
     cbEnsureBootstrap || return 1
 
@@ -401,7 +403,9 @@ cbDelete() {
 cbPurge() {
     cbInitAction "Purge cached bootstrap" || return 1
 
-    # This will ensure LINUX_RELEASE is set
+    # Make sure we ensure LINUX_RELEASE is set first
+    cbEnsureRelease
+
     local bootstrap=`cbBootstrapFilename`
 
     if [[ ! -s "$bootstrap" ]]; then
