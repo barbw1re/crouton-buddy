@@ -63,14 +63,16 @@ cbCreate() {
     fi
 
     echo ""
+
+    # Make sure we ensure LINUX_RELEASE is set first
+    cbEnsureRelease
+
+    echo ""
     if (( ! "$(cbConfirm "Are you sure you want to create new environment $chrootName")" )); then
         cbAcknowledgeAbort "Aborting environment creation."
         return 1
     fi
     echo ""
-
-    # Make sure we ensure LINUX_RELEASE is set first
-    cbEnsureRelease
 
     local bootstrap=`cbBootstrapFilename`
     cbEnsureBootstrap || return 1
