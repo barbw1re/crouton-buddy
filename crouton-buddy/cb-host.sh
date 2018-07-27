@@ -68,7 +68,7 @@ cbCreate() {
     cbEnsureRelease
 
     echo ""
-    if (( ! "$(cbConfirm "Are you sure you want to create new environment $chrootName")" )); then
+    if (( ! "$(cbConfirm "Are you sure you want to create new $LINUX_RELEASE environment $chrootName")" )); then
         cbAcknowledgeAbort "Aborting environment creation."
         return 1
     fi
